@@ -117,6 +117,9 @@
     .nav { display: flex; align-items: center; gap: 24px; margin-left: auto; }
     .nav a { color: var(--text-muted); font-weight: 600; font-size: 14px; }
     .nav a:hover { color: var(--primary); }
+    /* o link do menu tem especificidade maior que .btn-primary; reafirma o branco */
+    .nav a.btn-primary,
+    .nav a.btn-primary:hover { color: #fff; }
     .header-cta { margin-left: 6px; }
     .menu-btn {
       display: none; margin-left: auto; width: 44px; height: 44px;
