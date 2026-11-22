@@ -35,29 +35,49 @@ O GitHub Pages republica em ~1 minuto. Conferir:
 - https://divenup.com.br
 - https://divenup.com.br/app-ads.txt (precisa continuar respondendo 200)
 
-## Link da App Store
+## Links das lojas
 
-**Apple ID:** `6822841503` → https://apps.apple.com/app/id6822841503
+Nenhuma das duas lojas está pública, e as duas URLs respondem **404** hoje
+(Apple em análise, Google Play em teste fechado). Por isso os dois selos
+aparecem como **EM BREVE**, o clique mostra um aviso e o link do rodapé ganha
+o sufixo “(em breve)”. Nada leva a uma página de erro.
 
-O app iOS ainda está em análise, e a URL só responde depois que a Apple
-publicar. Por isso o selo da Apple aparece como **EM BREVE** e o clique mostra
-um aviso, em vez de levar a um 404.
+| Loja | URL | Situação |
+| --- | --- | --- |
+| App Store | https://apps.apple.com/app/id6822841503 | em análise |
+| Google Play | https://play.google.com/store/apps/details?id=com.divenup.contas | teste fechado |
 
-Tudo é controlado por duas constantes no fim do `index.html`:
+As duas ficam configuradas no fim do `index.html`:
 
 ```js
-const APP_STORE_URL = "https://apps.apple.com/app/id6822841503";
-const APP_STORE_LIVE = false; // ← virar para true quando o app estiver na loja
+const STORES = [
+  {
+    name: "App Store",
+    url: "https://apps.apple.com/app/id6822841503",
+    live: false, // ← true quando a Apple publicar
+    links: ["appStoreLink", "appStoreLinkBottom"],
+    note: "appStoreNote",
+    ...
+  },
+  {
+    name: "Google Play",
+    url: "https://play.google.com/store/apps/details?id=com.divenup.contas",
+    live: false, // ← true quando a produção do Play estiver liberada
+    links: ["playStoreLink", "playStoreLinkBottom", "playStoreLinkFooter"],
+    note: "playStoreNote",
+    ...
+  },
+];
 ```
 
-- `APP_STORE_LIVE = false` (hoje): os dois selos da Apple continuam com a
-  etiqueta **EM BREVE**, o clique é bloqueado e aparece o toast, e a nota
-  "A versão para iPhone está em revisão na App Store." fica visível.
-- `APP_STORE_LIVE = true`: o script liga os dois selos ao `APP_STORE_URL`,
-  remove a etiqueta **EM BREVE**, abre em nova aba e esconde a nota de revisão.
-  Não é preciso mexer em mais nada.
+- `live: false` (hoje): selo com **EM BREVE**, clique bloqueado com aviso e
+  nota da loja visível no CTA final.
+- `live: true`: o script liga todos os links daquela loja (selos do topo e do
+  CTA + rodapé), remove o **EM BREVE** (e o “(em breve)” do rodapé) e esconde
+  a nota correspondente. Os links abrem em nova aba.
 
-O selo do Google Play é um link fixo e está sempre ativo.
+As flags são independentes: dá para liberar o Android antes do iOS, ou
+vice-versa, sem tocar na outra loja.
 
 ## Identidade visual
 

@@ -152,7 +152,9 @@
       border: 1px solid #bef264; border-radius: 999px;
       padding: 3px 7px; font-size: 9px; font-weight: 900; letter-spacing: .06em;
     }
+    .store-notes { margin-top: 14px; }
     .store-note { color: var(--text-muted); font-size: 12px; }
+    .footer-col a.is-soon::after { content: " (em breve)"; font-size: 11px; color: #7FAE9C; }
 
     .hero-visual { position: relative; min-height: 560px; display: flex; align-items: center; justify-content: center; }
     .hero-blob {
@@ -376,7 +378,7 @@
           <p class="lede">Do churrasco ao barzinho: registre despesas, contas e pagamentos. O DivenUp calcula quem pagou o quê e mostra exatamente quem deve quanto a quem.</p>
 
           <div class="store-row" aria-label="Baixar o DivenUp">
-            <a class="store-link" href="https://play.google.com/store/apps/details?id=com.divenup.contas" target="_blank" rel="noopener" aria-label="Baixar na Google Play">
+            <a class="store-link is-soon" id="playStoreLink" href="#" aria-label="Google Play — em breve" aria-disabled="true">
               <img src="assets/badges/google-play.png" alt="Baixar na Google Play" width="646" height="250" />
             </a>
             <a class="store-link is-soon" id="appStoreLink" href="#" aria-label="DivenUp na App Store — em breve" aria-disabled="true">
@@ -606,16 +608,19 @@
     <section id="baixar" class="final-cta wrap">
       <span class="eyebrow"><span class="dot"></span> Bora dividir?</span>
       <h2>O próximo rolê já começa com a conta em paz.</h2>
-      <p>Baixe o DivenUp, crie seu primeiro evento e deixe o app fazer a matemática.</p>
+      <p>O DivenUp chega em breve às lojas. Crie seu primeiro evento e deixe a matemática com ele.</p>
       <div class="store-row">
-        <a class="store-link" href="https://play.google.com/store/apps/details?id=com.divenup.contas" target="_blank" rel="noopener" aria-label="Baixar na Google Play">
+        <a class="store-link is-soon" id="playStoreLinkBottom" href="#" aria-label="Google Play — em breve" aria-disabled="true">
           <img src="assets/badges/google-play.png" alt="Baixar na Google Play" width="646" height="250" />
         </a>
         <a class="store-link is-soon" id="appStoreLinkBottom" href="#" aria-label="DivenUp na App Store — em breve" aria-disabled="true">
           <img src="assets/badges/app-store.svg" alt="Baixar na App Store" width="120" height="40" />
         </a>
       </div>
-      <p class="store-note" id="appStoreNote" style="margin-top:14px;">A versão para iPhone está em revisão na App Store.</p>
+      <div class="store-notes">
+        <p class="store-note" id="appStoreNote">A versão para iPhone está em revisão na App Store.</p>
+        <p class="store-note" id="playStoreNote">A versão para Android está em teste fechado no Google Play.</p>
+      </div>
     </section>
   </main>
 
@@ -645,7 +650,7 @@
         <div class="footer-col">
           <h4>Contato</h4>
           <a href="mailto:divenup@brenotavares.com.br">divenup@brenotavares.com.br</a>
-          <a href="https://play.google.com/store/apps/details?id=com.divenup.contas" target="_blank" rel="noopener">Google Play</a>
+          <a href="#baixar" id="playStoreLinkFooter">Google Play</a>
         </div>
       </div>
       <div class="footer-bottom">
@@ -658,18 +663,6 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>
-    // Apple ID do app: 6822841503 (ficha já criada no App Store Connect).
-    // O app ainda está em análise, e a URL só responde quando a Apple publicar.
-    // Quando ele estiver disponível na loja, troque APP_STORE_LIVE para true:
-    // o link é ligado, o selo perde o "EM BREVE" e a nota de revisão some.
-    const APP_STORE_URL = "https://apps.apple.com/app/id6822841503";
-    const APP_STORE_LIVE = false;
-
-    const appStoreLinks = [
-      document.getElementById("appStoreLink"),
-      document.getElementById("appStoreLinkBottom"),
-    ].filter(Boolean);
-
     const toast = document.getElementById("toast");
     let toastTimer;
 
@@ -681,26 +674,61 @@
       toastTimer = setTimeout(() => toast.classList.remove("show"), 3600);
     }
 
-    appStoreLinks.forEach((link) => {
-      if (APP_STORE_URL && APP_STORE_LIVE) {
-        link.href = APP_STORE_URL;
-        link.classList.remove("is-soon");
-        link.removeAttribute("aria-disabled");
-        link.setAttribute("aria-label", "Baixar na App Store");
-        link.setAttribute("target", "_blank");
-        link.setAttribute("rel", "noopener");
-      } else {
-        link.addEventListener("click", (event) => {
-          event.preventDefault();
-          showToast("O DivenUp chega em breve à App Store. Enquanto isso, baixe no Google Play.");
+    // Nenhuma das lojas está pública ainda:
+    // - App Store: app em análise (a URL responde 404 até a Apple liberar);
+    // - Google Play: app em teste fechado (a URL só abre para os testadores).
+    // Ao publicar, troque `live` para true: o link é ativado, o selo perde o
+    // "EM BREVE" e a nota daquela loja some.
+    const STORES = [
+      {
+        name: "App Store",
+        url: "https://apps.apple.com/app/id6822841503",
+        cta: "Baixar na App Store",
+        live: false,
+        links: ["appStoreLink", "appStoreLinkBottom"],
+        note: "appStoreNote",
+        soon: "O DivenUp chega em breve à App Store. Acompanhe as novidades por aqui.",
+      },
+      {
+        name: "Google Play",
+        url: "https://play.google.com/store/apps/details?id=com.divenup.contas",
+        cta: "Baixar no Google Play",
+        live: false,
+        links: ["playStoreLink", "playStoreLinkBottom", "playStoreLinkFooter"],
+        note: "playStoreNote",
+        soon: "O DivenUp está em teste fechado no Google Play. A versão pública chega em breve.",
+      },
+    ];
+
+    STORES.forEach((store) => {
+      store.links
+        .map((id) => document.getElementById(id))
+        .filter(Boolean)
+        .forEach((link) => {
+          if (store.live) {
+            link.href = store.url;
+            link.classList.remove("is-soon");
+            link.removeAttribute("aria-disabled");
+            link.setAttribute("aria-label", store.cta);
+            link.setAttribute("target", "_blank");
+            link.setAttribute("rel", "noopener");
+            return;
+          }
+
+          link.classList.add("is-soon");
+          link.setAttribute("aria-disabled", "true");
+          link.setAttribute("aria-label", store.cta + " — em breve");
+          link.addEventListener("click", (event) => {
+            event.preventDefault();
+            showToast(store.soon);
+          });
         });
+
+      if (store.live) {
+        const note = document.getElementById(store.note);
+        if (note) note.hidden = true;
       }
     });
-
-    if (APP_STORE_URL && APP_STORE_LIVE) {
-      const note = document.getElementById("appStoreNote");
-      if (note) note.hidden = true;
-    }
 
     const menuBtn = document.getElementById("menuBtn");
     const nav = document.getElementById("nav");
