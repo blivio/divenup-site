@@ -8,18 +8,20 @@ próprio via `CNAME`. Basta dar `push` na branch `main`.
 ## Estrutura
 
 ```
-index.html          página única (PT-BR), CSS e JS embutidos
+index.html          página única (PT + EN), CSS e JS embutidos
 CNAME               divenup.com.br
 app-ads.txt         verificação do AdMob — NÃO remover
 robots.txt
 sitemap.xml
 assets/
+  i18n.js            traduções em inglês + strings de UI (PT/EN)
   icon-192.png       ícone usado no cabeçalho/rodapé
   apple-touch-icon.png
   favicon.png
   og.jpg             imagem de compartilhamento (Open Graph / Twitter)
   badges/            selos oficiais Google Play e App Store
-  screens/           capturas reais do app (WebP, 720px de largura)
+  screens/pt/        capturas reais do app em português (WebP, 720px)
+  screens/en/        capturas reais do app em inglês (WebP, 720px)
 ```
 
 ## Publicar
@@ -34,6 +36,26 @@ O GitHub Pages republica em ~1 minuto. Conferir:
 
 - https://divenup.com.br
 - https://divenup.com.br/app-ads.txt (precisa continuar respondendo 200)
+
+## Idioma (PT/EN)
+
+A mesma página é servida em português e inglês, sem duplicar HTML:
+
+1. `?lang=en` (ou `?lang=pt`) na URL tem prioridade e fica salvo;
+2. depois vale a escolha salva no navegador (`localStorage`);
+3. por último, o idioma principal do navegador — **mesma regra do app**
+   (`mobile/src/i18n`): só PT se começar com `pt`; todo o resto cai em inglês.
+
+O seletor **PT/EN** no cabeçalho (desktop e mobile) troca na hora, sem recarregar,
+e salva a preferência.
+
+- Textos em inglês: `assets/i18n.js` (`DIVENUP_I18N`). O português é o texto
+  original no `index.html` e volta a ele quando o visitante escolhe PT.
+- Strings que o JS usa (título, meta, avisos das lojas): `DIVENUP_UI` no mesmo
+  arquivo, com as duas línguas.
+- Capturas: `assets/screens/pt/` e `assets/screens/en/` (mesmos nomes).
+- Título, `meta description`, Open Graph e `canonical` acompanham o idioma.
+- `?lang=en` é o endereço usado no `hreflang` do `<head>`.
 
 ## Links das lojas
 

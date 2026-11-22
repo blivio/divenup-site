@@ -10,7 +10,38 @@
   <link rel="icon" href="assets/favicon.png" />
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
 
+  <script>
+    // Resolve o idioma antes de pintar a página (evita piscar em português).
+    // Mesma regra do app: só PT se o idioma principal do aparelho for português.
+    (function () {
+      try {
+        var q = new URLSearchParams(location.search).get("lang");
+        var saved = localStorage.getItem("divenup.lang");
+        var lang =
+          q === "pt" || q === "en"
+            ? q
+            : saved === "pt" || saved === "en"
+              ? saved
+              : null;
+
+        if (!lang) {
+          var primary = String(
+            (navigator.languages && navigator.languages[0]) || navigator.language || "",
+          ).toLowerCase();
+          lang = primary.indexOf("pt") === 0 ? "pt" : "en";
+        }
+
+        document.documentElement.lang = lang === "pt" ? "pt-BR" : "en";
+      } catch (e) {}
+    })();
+  </script>
+
   <meta property="og:type" content="website" />
+  <meta property="og:locale" content="pt_BR" />
+  <meta property="og:locale:alternate" content="en_US" />
+  <link rel="alternate" hreflang="pt-BR" href="https://divenup.com.br/" />
+  <link rel="alternate" hreflang="en" href="https://divenup.com.br/?lang=en" />
+  <link rel="alternate" hreflang="x-default" href="https://divenup.com.br/" />
   <meta property="og:site_name" content="DivenUp" />
   <meta property="og:title" content="DivenUp — divida contas sem planilhas" />
   <meta property="og:description" content="Do churrasco ao barzinho: registre despesas, contas e pagamentos e veja exatamente quem deve quanto a quem." />
@@ -147,14 +178,29 @@
     .store-link img { height: 51px; width: auto; }
     .store-link.is-soon { position: relative; cursor: not-allowed; }
     .store-link.is-soon::after {
-      content: "EM BREVE"; position: absolute; right: -7px; top: -9px;
+      content: attr(data-soon); position: absolute; right: -7px; top: -9px;
       background: var(--success-soft); color: var(--success);
       border: 1px solid #bef264; border-radius: 999px;
       padding: 3px 7px; font-size: 9px; font-weight: 900; letter-spacing: .06em;
     }
     .store-notes { margin-top: 14px; }
     .store-note { color: var(--text-muted); font-size: 12px; }
-    .footer-col a.is-soon::after { content: " (em breve)"; font-size: 11px; color: #7FAE9C; }
+    .footer-col a.is-soon::after { content: " (" attr(data-soon) ")"; font-size: 11px; color: #7FAE9C; }
+
+    .lang-switch {
+      display: inline-flex; align-items: center; gap: 2px;
+      padding: 3px; border: 1px solid var(--line); border-radius: 999px;
+      background: rgba(255, 255, 255, .72);
+    }
+    .lang-switch button {
+      border: 0; background: transparent; cursor: pointer; line-height: 1;
+      padding: 6px 10px; border-radius: 999px;
+      font-size: 11.5px; font-weight: 850; letter-spacing: .04em;
+      color: var(--text-muted);
+    }
+    .lang-switch button[aria-pressed="true"] { background: var(--primary); color: #fff; }
+    .lang-switch button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .lang-switch--mobile { display: none; }
 
     .hero-visual { position: relative; min-height: 560px; display: flex; align-items: center; justify-content: center; }
     .hero-blob {
@@ -300,7 +346,7 @@
     .footer-brand img { width: 42px; height: 42px; border-radius: 12px; }
     .footer-note { margin-top: 14px; max-width: 320px; color: #9CC8B6; font-size: 13px; }
     .footer-col h4 { margin: 0 0 10px; color: #fff; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; }
-    .footer-col a { display: block; color: #A9D2C1; font-size: 13.5px; padding: 4px 0; }
+    .footer-col a { display: block; color: #A9D2C1; font-size: 13.5px; padding: 4px 0; overflow-wrap: anywhere; }
     .footer-col a:hover { color: #fff; }
     .footer-bottom { border-top: 1px solid rgba(255,255,255,.12); margin-top: 36px; padding-top: 18px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; color: #7FAE9C; font-size: 12px; }
 
@@ -328,7 +374,11 @@
       .nav { display: none; }
       .nav.open { display: flex; position: absolute; top: 78px; left: 20px; right: 20px; padding: 18px; border: 1px solid var(--line); border-radius: 18px; background: rgba(255,255,255,.98); box-shadow: var(--shadow); flex-direction: column; align-items: stretch; gap: 12px; margin: 0; }
       .header-cta { display: none; }
-      .menu-btn { display: inline-flex; }
+      .menu-btn { display: inline-flex; margin-left: 10px; }
+      .lang-switch--mobile { display: inline-flex; margin-left: auto; }
+    }
+    @media (max-width: 560px) {
+      .footer-grid { grid-template-columns: 1fr; gap: 26px; }
     }
     @media (max-width: 720px) {
       section { padding: 62px 0; }
@@ -340,6 +390,10 @@
       .hero-visual { min-height: 470px; }
       .site-footer { padding-top: 40px; }
     }
+    /* Inglês tem palavras mais longas no título: reduz para não estourar. */
+    @media (max-width: 400px) {
+      html[lang="en"] h1 { font-size: clamp(30px, 9.2vw, 40px); }
+    }
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
       .reveal { opacity: 1; transform: none; transition: none; }
@@ -348,23 +402,31 @@
   </style>
 </head>
 <body>
-  <a class="skip" href="#conteudo">Pular para o conteúdo</a>
+  <a class="skip" href="#conteudo" data-i18n="a11y.skip">Pular para o conteúdo</a>
 
   <header class="site-header">
     <div class="wrap header-inner">
-      <a class="brand" href="#top" aria-label="DivenUp — início">
+      <a class="brand" href="#top" aria-label="DivenUp — início" data-i18n-aria="a11y.home">
         <img src="assets/icon-192.png" alt="" width="46" height="46" />
         <span>DivenUp</span>
       </a>
-      <button class="menu-btn" id="menuBtn" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav">
+      <div class="lang-switch lang-switch--mobile" role="group" aria-label="Idioma / Language">
+        <button type="button" data-lang="pt" aria-pressed="true">PT</button>
+        <button type="button" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+      <button class="menu-btn" id="menuBtn" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav" data-i18n-aria="a11y.menu">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
       </button>
-      <nav class="nav" id="nav" aria-label="Navegação principal">
-        <a href="#recursos">Recursos</a>
-        <a href="#como-funciona">Como funciona</a>
-        <a href="#planos">Planos</a>
-        <a href="#privacidade">Privacidade</a>
-        <a class="btn btn-primary header-cta" href="#baixar">Baixar o app</a>
+      <nav class="nav" id="nav" aria-label="Navegação principal" data-i18n-aria="a11y.nav">
+        <a href="#recursos" data-i18n="nav.features">Recursos</a>
+        <a href="#como-funciona" data-i18n="nav.how">Como funciona</a>
+        <a href="#planos" data-i18n="nav.plans">Planos</a>
+        <a href="#privacidade" data-i18n="nav.privacy">Privacidade</a>
+        <div class="lang-switch" role="group" aria-label="Idioma / Language">
+          <button type="button" data-lang="pt" aria-pressed="true">PT</button>
+          <button type="button" data-lang="en" aria-pressed="false">EN</button>
+        </div>
+        <a class="btn btn-primary header-cta" href="#baixar" data-i18n="cta.download">Baixar o app</a>
       </nav>
     </div>
   </header>
@@ -373,38 +435,38 @@
     <section class="hero wrap" id="top">
       <div class="hero-grid">
         <div class="hero-copy">
-          <span class="eyebrow"><span class="dot"></span> Para dividir sem estresse</span>
-          <h1>Divida contas <span class="highlight">sem planilhas</span>.</h1>
-          <p class="lede">Do churrasco ao barzinho: registre despesas, contas e pagamentos. O DivenUp calcula quem pagou o quê e mostra exatamente quem deve quanto a quem.</p>
+          <span class="eyebrow"><span class="dot"></span> <span data-i18n="hero.eyebrow">Para dividir sem estresse</span></span>
+          <h1 data-i18n-html="hero.title">Divida contas <span class="highlight">sem planilhas</span>.</h1>
+          <p class="lede" data-i18n="hero.lede">Do churrasco ao barzinho: registre despesas, contas e pagamentos. O DivenUp calcula quem pagou o quê e mostra exatamente quem deve quanto a quem.</p>
 
-          <div class="store-row" aria-label="Baixar o DivenUp">
-            <a class="store-link is-soon" id="playStoreLink" href="#" aria-label="Google Play — em breve" aria-disabled="true">
-              <img src="assets/badges/google-play.png" alt="Baixar na Google Play" width="646" height="250" />
+          <div class="store-row" aria-label="Baixar o DivenUp" data-i18n-aria="a11y.stores">
+            <a class="store-link is-soon" id="playStoreLink" data-store="play" href="#" aria-label="Google Play — em breve" aria-disabled="true">
+              <img src="assets/badges/google-play.png" alt="Baixar na Google Play" data-i18n-alt="store.play.alt" width="646" height="250" />
             </a>
-            <a class="store-link is-soon" id="appStoreLink" href="#" aria-label="DivenUp na App Store — em breve" aria-disabled="true">
-              <img src="assets/badges/app-store.svg" alt="Baixar na App Store" width="120" height="40" />
+            <a class="store-link is-soon" id="appStoreLink" data-store="apple" href="#" aria-label="DivenUp na App Store — em breve" aria-disabled="true">
+              <img src="assets/badges/app-store.svg" alt="Baixar na App Store" data-i18n-alt="store.apple.alt" width="120" height="40" />
             </a>
           </div>
           <div class="micro">
-            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg> Grátis para começar</span>
-            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 8l7-5 7 5"/></svg> iPhone e Android</span>
-            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg> Funciona offline</span>
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg> <span data-i18n="micro.free">Grátis para começar</span></span>
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 8l7-5 7 5"/></svg> <span data-i18n="micro.platforms">iPhone e Android</span></span>
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg> <span data-i18n="micro.offline">Funciona offline</span></span>
           </div>
         </div>
 
-        <div class="hero-visual" aria-label="Captura do app DivenUp">
+        <div class="hero-visual" aria-label="Captura do app DivenUp" data-i18n-aria="a11y.shot">
           <div class="hero-blob" aria-hidden="true"></div>
           <div class="phone">
-            <img src="assets/screens/acertos.webp" alt="Tela do DivenUp mostrando quem deve ao estabelecimento" width="720" height="1560" />
+            <img src="assets/screens/pt/acertos.webp" data-shot="acertos" alt="Tela do DivenUp mostrando quem deve ao estabelecimento" data-i18n-alt="hero.shot.alt" width="720" height="1560" />
           </div>
           <div class="float-card float-one" aria-hidden="true">
             <span class="float-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg></span>
-            <small>Tudo acertado</small>
-            <strong>R$ 0,00 em aberto</strong>
+            <small data-i18n="hero.settled">Tudo acertado</small>
+            <strong data-i18n="hero.settledValue">R$ 0,00 em aberto</strong>
           </div>
           <div class="float-card float-two" aria-hidden="true">
-            <small>Seu consumo</small>
-            <strong>R$ 33,74</strong>
+            <small data-i18n="hero.spend">Seu consumo</small>
+            <strong data-i18n="hero.spendValue">R$ 33,74</strong>
           </div>
         </div>
       </div>
@@ -412,12 +474,12 @@
 
     <div class="logo-strip">
       <div class="wrap">
-        <p>Feito para todo rolê que junta gente</p>
+        <p data-i18n="strip.title">Feito para todo rolê que junta gente</p>
         <div class="chips">
-          <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18l-2 12H5L3 7Z"/><path d="M8 7V5a4 4 0 0 1 8 0v2"/></svg> Viagens</span>
-          <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h14l-2 8H7L5 4Z"/><path d="M7 12v6h10v-6"/></svg> Bares e restaurantes</span>
-          <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c2 4 5 5 5 9a5 5 0 0 1-10 0c0-2 1-3 2-5 1 2 2 2 3 1 0-2 0-3 0-5Z"/></svg> Churrascos</span>
-          <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Amigos e família</span>
+          <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18l-2 12H5L3 7Z"/><path d="M8 7V5a4 4 0 0 1 8 0v2"/></svg> <span data-i18n="chip.trips">Viagens</span></span>
+          <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h14l-2 8H7L5 4Z"/><path d="M7 12v6h10v-6"/></svg> <span data-i18n="chip.bars">Bares e restaurantes</span></span>
+          <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c2 4 5 5 5 9a5 5 0 0 1-10 0c0-2 1-3 2-5 1 2 2 2 3 1 0-2 0-3 0-5Z"/></svg> <span data-i18n="chip.bbq">Churrascos</span></span>
+          <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> <span data-i18n="chip.friends">Amigos e família</span></span>
         </div>
       </div>
     </div>
@@ -425,43 +487,43 @@
     <section id="recursos" class="wrap">
       <div class="section-head">
         <div>
-          <span class="eyebrow"><span class="dot"></span> Recursos</span>
-          <h2>Feito para quem divide de verdade.</h2>
+          <span class="eyebrow"><span class="dot"></span> <span data-i18n="features.eyebrow">Recursos</span></span>
+          <h2 data-i18n="features.title">Feito para quem divide de verdade.</h2>
         </div>
-        <p>Sem caderninho, sem discussão e sem aquele “depois eu vejo”. O DivenUp organiza tudo e deixa o acerto claro.</p>
+        <p data-i18n="features.lede">Sem caderninho, sem discussão e sem aquele “depois eu vejo”. O DivenUp organiza tudo e deixa o acerto claro.</p>
       </div>
 
       <div class="features">
         <article class="feature reveal">
           <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h10M4 17h7"/></svg></div>
-          <h3>Rateio do seu jeito</h3>
-          <p>Divida por igual, por valor, por percentual ou por peso. Cada despesa pode ter um jeito diferente.</p>
+          <h3 data-i18n="f1.title">Rateio do seu jeito</h3>
+          <p data-i18n="f1.text">Divida por igual, por valor, por percentual ou por peso. Cada despesa pode ter um jeito diferente.</p>
         </article>
         <article class="feature reveal">
           <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h5M8 16h3"/></svg></div>
-          <h3>Contas de bar e restaurante</h3>
-          <p>Monte a conta item por item, com quantidade, taxa de serviço e consumo por pessoa. O “em aberto” fica visível.</p>
+          <h3 data-i18n="f2.title">Contas de bar e restaurante</h3>
+          <p data-i18n="f2.text">Monte a conta item por item, com quantidade, taxa de serviço e consumo por pessoa. O “em aberto” fica visível.</p>
         </article>
         <article class="feature reveal">
           <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-          <h3>Colaboração de verdade</h3>
-          <p>Convide por @usuário, e-mail ou QR code. Todo mundo vê o mesmo evento, sincronizado entre aparelhos.</p>
+          <h3 data-i18n="f3.title">Colaboração de verdade</h3>
+          <p data-i18n="f3.text">Convide por @usuário, e-mail ou QR code. Todo mundo vê o mesmo evento, sincronizado entre aparelhos.</p>
         </article>
         <article class="feature reveal">
           <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div>
-          <h3>Relatórios no Pro</h3>
-          <p>Veja gastos por período, consumo por pessoa e exporte em CSV para fechar as contas sem dúvida.</p>
-          <span class="tag">Disponível no Pro</span>
+          <h3 data-i18n="f4.title">Relatórios no Pro</h3>
+          <p data-i18n="f4.text">Veja gastos por período, consumo por pessoa e exporte em CSV para fechar as contas sem dúvida.</p>
+          <span class="tag" data-i18n="f4.tag">Disponível no Pro</span>
         </article>
         <article class="feature reveal">
           <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12a7 7 0 0 1 14 0"/><path d="M2 12h20M12 12v8"/></svg></div>
-          <h3>Funciona offline</h3>
-          <p>Registre tudo mesmo sem internet. Os dados ficam no aparelho e sincronizam quando a conexão voltar.</p>
+          <h3 data-i18n="f5.title">Funciona offline</h3>
+          <p data-i18n="f5.text">Registre tudo mesmo sem internet. Os dados ficam no aparelho e sincronizam quando a conexão voltar.</p>
         </article>
         <article class="feature reveal">
           <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg></div>
-          <h3>Do seu jeito</h3>
-          <p>Tema claro, escuro ou automático, tutoriais e interface em português e inglês.</p>
+          <h3 data-i18n="f6.title">Do seu jeito</h3>
+          <p data-i18n="f6.text">Tema claro, escuro ou automático, tutoriais e interface em português e inglês.</p>
         </article>
       </div>
     </section>
@@ -470,23 +532,23 @@
       <div class="wrap">
         <div class="section-head">
           <div>
-            <span class="eyebrow"><span class="dot"></span> Por dentro do app</span>
-            <h2>A conta inteira, sem letra miúda.</h2>
+            <span class="eyebrow"><span class="dot"></span> <span data-i18n="screens.eyebrow">Por dentro do app</span></span>
+            <h2 data-i18n="screens.title">A conta inteira, sem letra miúda.</h2>
           </div>
-          <p>Do primeiro lançamento ao acerto final, tudo fica na mesma tela — fácil de conferir e de compartilhar.</p>
+          <p data-i18n="screens.lede">Do primeiro lançamento ao acerto final, tudo fica na mesma tela — fácil de conferir e de compartilhar.</p>
         </div>
         <div class="gallery">
           <figure class="shot reveal">
-            <div class="device"><img src="assets/screens/acertos.webp" alt="Tela de acertos do DivenUp" width="720" height="1560" loading="lazy" /></div>
-            <figcaption>Quem deve ao estabelecimento</figcaption>
+            <div class="device"><img src="assets/screens/pt/acertos.webp" data-shot="acertos" alt="Tela de acertos do DivenUp" data-i18n-alt="shot.acertos.alt" width="720" height="1560" loading="lazy" /></div>
+            <figcaption data-i18n="shot.acertos.caption">Quem deve ao estabelecimento</figcaption>
           </figure>
           <figure class="shot reveal">
-            <div class="device"><img src="assets/screens/bar.webp" alt="Tela de conta de bar do DivenUp" width="720" height="1560" loading="lazy" /></div>
-            <figcaption>Conta do bar, item por item</figcaption>
+            <div class="device"><img src="assets/screens/pt/bar.webp" data-shot="bar" alt="Tela de conta de bar do DivenUp" data-i18n-alt="shot.bar.alt" width="720" height="1560" loading="lazy" /></div>
+            <figcaption data-i18n="shot.bar.caption">Conta do bar, item por item</figcaption>
           </figure>
           <figure class="shot reveal">
-            <div class="device"><img src="assets/screens/resumo.webp" alt="Tela de resumo e consumo por pessoa do DivenUp" width="720" height="1560" loading="lazy" /></div>
-            <figcaption>Resumo e consumo por pessoa</figcaption>
+            <div class="device"><img src="assets/screens/pt/resumo.webp" data-shot="resumo" alt="Tela de resumo e consumo por pessoa do DivenUp" data-i18n-alt="shot.resumo.alt" width="720" height="1560" loading="lazy" /></div>
+            <figcaption data-i18n="shot.resumo.caption">Resumo e consumo por pessoa</figcaption>
           </figure>
         </div>
       </div>
@@ -495,23 +557,23 @@
     <section id="como-funciona" class="wrap">
       <div class="section-head">
         <div>
-          <span class="eyebrow"><span class="dot"></span> Como funciona</span>
-          <h2>Três passos e acabou o drama.</h2>
+          <span class="eyebrow"><span class="dot"></span> <span data-i18n="steps.eyebrow">Como funciona</span></span>
+          <h2 data-i18n="steps.title">Três passos e acabou o drama.</h2>
         </div>
-        <p>Você não precisa mudar a forma de sair com os amigos. Só precisa registrar.</p>
+        <p data-i18n="steps.lede">Você não precisa mudar a forma de sair com os amigos. Só precisa registrar.</p>
       </div>
       <div class="steps">
         <article class="step reveal">
-          <h3>Crie o evento</h3>
-          <p>Viagem, churrasco, bar, restaurante, festa. Dê um nome e comece.</p>
+          <h3 data-i18n="s1.title">Crie o evento</h3>
+          <p data-i18n="s1.text">Viagem, churrasco, bar, restaurante, festa. Dê um nome e comece.</p>
         </article>
         <article class="step reveal">
-          <h3>Adicione quem participou</h3>
-          <p>Escolha os contatos, convide pelo @usuário ou monte a lista na mão.</p>
+          <h3 data-i18n="s2.title">Adicione quem participou</h3>
+          <p data-i18n="s2.text">Escolha os contatos, convide pelo @usuário ou monte a lista na mão.</p>
         </article>
         <article class="step reveal">
-          <h3>Registre e acerte</h3>
-          <p>Lance despesas, contas e pagamentos. O DivenUp mostra quem deve quanto a quem.</p>
+          <h3 data-i18n="s3.title">Registre e acerte</h3>
+          <p data-i18n="s3.text">Lance despesas, contas e pagamentos. O DivenUp mostra quem deve quanto a quem.</p>
         </article>
       </div>
     </section>
@@ -519,36 +581,36 @@
     <section id="planos" class="wrap">
       <div class="section-head">
         <div>
-          <span class="eyebrow"><span class="dot"></span> Planos</span>
-          <h2>Comece grátis. Vá de Pro quando quiser.</h2>
+          <span class="eyebrow"><span class="dot"></span> <span data-i18n="plans.eyebrow">Planos</span></span>
+          <h2 data-i18n="plans.title">Comece grátis. Vá de Pro quando quiser.</h2>
         </div>
-        <p>O essencial para dividir já está no Free. O Pro tira os limites e os anúncios.</p>
+        <p data-i18n="plans.lede">O essencial para dividir já está no Free. O Pro tira os limites e os anúncios.</p>
       </div>
       <div class="plans">
         <article class="plan reveal">
           <span class="plan-label">Free</span>
-          <h3>Para o dia a dia</h3>
-          <p class="price">Grátis para começar</p>
+          <h3 data-i18n="free.title">Para o dia a dia</h3>
+          <p class="price" data-i18n="free.price">Grátis para começar</p>
           <ul>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg> Eventos, participantes, despesas e pagamentos</li>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg> Rateio por igual, valor, percentual ou peso</li>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg> Colaboração e sincronização entre aparelhos</li>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg> Até 20 lançamentos por hora</li>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg> Modo convidado, sem conta</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg> <span data-i18n="free.1">Eventos, participantes, despesas e pagamentos</span></li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg> <span data-i18n="free.2">Rateio por igual, valor, percentual ou peso</span></li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg> <span data-i18n="free.3">Colaboração e sincronização entre aparelhos</span></li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg> <span data-i18n="free.4">Até 20 lançamentos por hora</span></li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg> <span data-i18n="free.5">Modo convidado, sem conta</span></li>
           </ul>
-          <a class="btn btn-ghost" href="#baixar">Baixar grátis</a>
+          <a class="btn btn-ghost" href="#baixar" data-i18n="free.cta">Baixar grátis</a>
         </article>
         <article class="plan pro reveal">
           <span class="plan-label">Pro</span>
-          <h3>Para quem divide sempre</h3>
-          <p class="price">Assinatura mensal ou anual · 1 mês grátis</p>
+          <h3 data-i18n="pro.title">Para quem divide sempre</h3>
+          <p class="price" data-i18n="pro.price">Assinatura mensal ou anual · 1 mês grátis</p>
           <ul>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg> Lançamentos ilimitados</li>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg> Relatórios por período e exportação CSV</li>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg> Sem anúncios</li>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg> Tudo do Free incluído</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg> <span data-i18n="pro.1">Lançamentos ilimitados</span></li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg> <span data-i18n="pro.2">Relatórios por período e exportação CSV</span></li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg> <span data-i18n="pro.3">Sem anúncios</span></li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg> <span data-i18n="pro.4">Tudo do Free incluído</span></li>
           </ul>
-          <a class="btn" href="#baixar">Conhecer o Pro</a>
+          <a class="btn" href="#baixar" data-i18n="pro.cta">Conhecer o Pro</a>
         </article>
       </div>
     </section>
@@ -556,20 +618,20 @@
     <section id="privacidade" class="wrap">
       <div class="privacy-panel">
         <div>
-          <span class="eyebrow"><span class="dot"></span> Privacidade</span>
-          <h2>Seus dados, do seu jeito.</h2>
-          <p>Sem conta, os dados ficam só no seu aparelho. Com conta, sincronizam com segurança para você acessar de qualquer lugar. E você pode excluir tudo quando quiser.</p>
+          <span class="eyebrow"><span class="dot"></span> <span data-i18n="privacy.eyebrow">Privacidade</span></span>
+          <h2 data-i18n="privacy.title">Seus dados, do seu jeito.</h2>
+          <p data-i18n="privacy.lede">Sem conta, os dados ficam só no seu aparelho. Com conta, sincronizam com segurança para você acessar de qualquer lugar. E você pode excluir tudo quando quiser.</p>
           <div class="privacy-links">
-            <a href="https://blivio.github.io/divenup-privacy/">Política de Privacidade</a>
-            <a href="https://blivio.github.io/divenup-privacy/eula/">Termos de Uso</a>
-            <a href="https://blivio.github.io/divenup-privacy/exclusao.html">Excluir conta</a>
+            <a href="https://blivio.github.io/divenup-privacy/" data-i18n="privacy.policy">Política de Privacidade</a>
+            <a href="https://blivio.github.io/divenup-privacy/eula/" data-i18n="privacy.terms">Termos de Uso</a>
+            <a href="https://blivio.github.io/divenup-privacy/exclusao.html" data-i18n="privacy.delete">Excluir conta</a>
           </div>
         </div>
         <ul class="privacy-list">
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5c0 4.4 3 8 7 10 4-2 7-5.6 7-10V6l-7-3Z"/></svg> Você decide se quer criar conta</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg> Dados protegidos em trânsito e em repouso</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg> Anúncios não personalizados, sem rastreamento</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15"/></svg> Exclusão de conta pelo próprio app</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5c0 4.4 3 8 7 10 4-2 7-5.6 7-10V6l-7-3Z"/></svg> <span data-i18n="privacy.1">Você decide se quer criar conta</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg> <span data-i18n="privacy.2">Dados protegidos em trânsito e em repouso</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg> <span data-i18n="privacy.3">Anúncios não personalizados, sem rastreamento</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15"/></svg> <span data-i18n="privacy.4">Exclusão de conta pelo próprio app</span></li>
         </ul>
       </div>
     </section>
@@ -577,49 +639,49 @@
     <section class="wrap">
       <div class="section-head">
         <div>
-          <span class="eyebrow"><span class="dot"></span> Dúvidas</span>
-          <h2>O que todo mundo pergunta.</h2>
+          <span class="eyebrow"><span class="dot"></span> <span data-i18n="faq.eyebrow">Dúvidas</span></span>
+          <h2 data-i18n="faq.title">O que todo mundo pergunta.</h2>
         </div>
       </div>
       <div class="faq">
         <details>
-          <summary>Preciso criar conta para usar?</summary>
-          <p>Não. No modo convidado os dados ficam apenas no seu aparelho. A conta serve para sincronizar entre aparelhos e colaborar em eventos compartilhados.</p>
+          <summary data-i18n="faq.q1.q">Preciso criar conta para usar?</summary>
+          <p data-i18n="faq.q1.a">Não. No modo convidado os dados ficam apenas no seu aparelho. A conta serve para sincronizar entre aparelhos e colaborar em eventos compartilhados.</p>
         </details>
         <details>
-          <summary>O DivenUp faz pagamentos?</summary>
-          <p>Não. O app organiza e calcula os valores. Os pagamentos entre as pessoas acontecem fora do app, como você já faz hoje.</p>
+          <summary data-i18n="faq.q2.q">O DivenUp faz pagamentos?</summary>
+          <p data-i18n="faq.q2.a">Não. O app organiza e calcula os valores. Os pagamentos entre as pessoas acontecem fora do app, como você já faz hoje.</p>
         </details>
         <details>
-          <summary>Funciona sem internet?</summary>
-          <p>Sim. Você pode criar eventos, participantes e lançamentos offline. Quando a conexão voltar, tudo sincroniza.</p>
+          <summary data-i18n="faq.q3.q">Funciona sem internet?</summary>
+          <p data-i18n="faq.q3.a">Sim. Você pode criar eventos, participantes e lançamentos offline. Quando a conexão voltar, tudo sincroniza.</p>
         </details>
         <details>
-          <summary>Como excluo minha conta e meus dados?</summary>
-          <p>Em Ajustes → Excluir minha conta, dentro do app. Também há instruções em <a class="accent" href="https://blivio.github.io/divenup-privacy/exclusao.html">blivio.github.io/divenup-privacy/exclusao.html</a>.</p>
+          <summary data-i18n="faq.q4.q">Como excluo minha conta e meus dados?</summary>
+          <p data-i18n-html="faq.q4.a">Em Ajustes → Excluir minha conta, dentro do app. Também há instruções em <a class="accent" href="https://blivio.github.io/divenup-privacy/exclusao.html">blivio.github.io/divenup-privacy/exclusao.html</a>.</p>
         </details>
         <details>
-          <summary>O Pro é mensal ou anual?</summary>
-          <p>Os dois. A assinatura é feita diretamente pela App Store ou Google Play, com o preço exibido na sua loja.</p>
+          <summary data-i18n="faq.q5.q">O Pro é mensal ou anual?</summary>
+          <p data-i18n="faq.q5.a">Os dois. A assinatura é feita diretamente pela App Store ou Google Play, com o preço exibido na sua loja.</p>
         </details>
       </div>
     </section>
 
     <section id="baixar" class="final-cta wrap">
-      <span class="eyebrow"><span class="dot"></span> Bora dividir?</span>
-      <h2>O próximo rolê já começa com a conta em paz.</h2>
-      <p>O DivenUp chega em breve às lojas. Crie seu primeiro evento e deixe a matemática com ele.</p>
+      <span class="eyebrow"><span class="dot"></span> <span data-i18n="cta.eyebrow">Bora dividir?</span></span>
+      <h2 data-i18n="cta.title">O próximo rolê já começa com a conta em paz.</h2>
+      <p data-i18n="cta.lede">O DivenUp chega em breve às lojas. Crie seu primeiro evento e deixe a matemática com ele.</p>
       <div class="store-row">
-        <a class="store-link is-soon" id="playStoreLinkBottom" href="#" aria-label="Google Play — em breve" aria-disabled="true">
-          <img src="assets/badges/google-play.png" alt="Baixar na Google Play" width="646" height="250" />
+        <a class="store-link is-soon" id="playStoreLinkBottom" data-store="play" href="#" aria-label="Google Play — em breve" aria-disabled="true">
+          <img src="assets/badges/google-play.png" alt="Baixar na Google Play" data-i18n-alt="store.play.alt" width="646" height="250" />
         </a>
-        <a class="store-link is-soon" id="appStoreLinkBottom" href="#" aria-label="DivenUp na App Store — em breve" aria-disabled="true">
-          <img src="assets/badges/app-store.svg" alt="Baixar na App Store" width="120" height="40" />
+        <a class="store-link is-soon" id="appStoreLinkBottom" data-store="apple" href="#" aria-label="DivenUp na App Store — em breve" aria-disabled="true">
+          <img src="assets/badges/app-store.svg" alt="Baixar na App Store" data-i18n-alt="store.apple.alt" width="120" height="40" />
         </a>
       </div>
       <div class="store-notes">
-        <p class="store-note" id="appStoreNote">A versão para iPhone está em revisão na App Store.</p>
-        <p class="store-note" id="playStoreNote">A versão para Android está em teste fechado no Google Play.</p>
+        <p class="store-note" id="appStoreNote" data-i18n="note.apple">A versão para iPhone está em revisão na App Store.</p>
+        <p class="store-note" id="playStoreNote" data-i18n="note.play">A versão para Android está em teste fechado no Google Play.</p>
       </div>
     </section>
   </main>
@@ -632,37 +694,195 @@
             <img src="assets/icon-192.png" alt="" width="42" height="42" />
             DivenUp
           </div>
-          <p class="footer-note">Divida contas, despesas e rolês. Do churrasco à viagem, sem planilhas e sem confusão.</p>
+          <p class="footer-note" data-i18n="footer.note">Divida contas, despesas e rolês. Do churrasco à viagem, sem planilhas e sem confusão.</p>
         </div>
         <div class="footer-col">
-          <h4>Produto</h4>
-          <a href="#recursos">Recursos</a>
-          <a href="#como-funciona">Como funciona</a>
-          <a href="#planos">Planos</a>
+          <h4 data-i18n="footer.product">Produto</h4>
+          <a href="#recursos" data-i18n="nav.features">Recursos</a>
+          <a href="#como-funciona" data-i18n="nav.how">Como funciona</a>
+          <a href="#planos" data-i18n="nav.plans">Planos</a>
         </div>
         <div class="footer-col">
-          <h4>Legal</h4>
-          <a href="https://blivio.github.io/divenup-privacy/">Privacidade</a>
-          <a href="https://blivio.github.io/divenup-privacy/eula/">Termos de Uso</a>
-          <a href="https://blivio.github.io/divenup-privacy/exclusao.html">Exclusão de conta</a>
+          <h4 data-i18n="footer.legal">Legal</h4>
+          <a href="https://blivio.github.io/divenup-privacy/" data-i18n="footer.privacy">Privacidade</a>
+          <a href="https://blivio.github.io/divenup-privacy/eula/" data-i18n="privacy.terms">Termos de Uso</a>
+          <a href="https://blivio.github.io/divenup-privacy/exclusao.html" data-i18n="footer.delete">Exclusão de conta</a>
           <a href="app-ads.txt">app-ads.txt</a>
         </div>
         <div class="footer-col">
-          <h4>Contato</h4>
+          <h4 data-i18n="footer.contact">Contato</h4>
           <a href="mailto:divenup@brenotavares.com.br">divenup@brenotavares.com.br</a>
-          <a href="#baixar" id="playStoreLinkFooter">Google Play</a>
+          <a href="#baixar" id="playStoreLinkFooter" data-store="play">Google Play</a>
         </div>
       </div>
       <div class="footer-bottom">
-        <span>© 2026 DivenUp. Todos os direitos reservados.</span>
-        <span>Feito para dividir melhor.</span>
+        <span data-i18n="footer.rights">© 2026 DivenUp. Todos os direitos reservados.</span>
+        <span data-i18n="footer.tagline">Feito para dividir melhor.</span>
       </div>
     </div>
   </footer>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+  <script src="assets/i18n.js"></script>
   <script>
+    const I18N = window.DIVENUP_I18N || {};
+    const UI_ALL = window.DIVENUP_UI;
+    const LANG_KEY = "divenup.lang";
+    const isLang = (value) => value === "pt" || value === "en";
+
+    function detectLang() {
+      const fromUrl = new URLSearchParams(location.search).get("lang");
+
+      if (isLang(fromUrl)) {
+        return { lang: fromUrl, persist: true };
+      }
+
+      try {
+        const saved = localStorage.getItem(LANG_KEY);
+        if (isLang(saved)) {
+          return { lang: saved, persist: false };
+        }
+      } catch (error) {
+        // localStorage bloqueado: cai na detecção do navegador.
+      }
+
+      const primary = String(
+        (navigator.languages && navigator.languages[0]) || navigator.language || "",
+      ).toLowerCase();
+
+      return { lang: primary.indexOf("pt") === 0 ? "pt" : "en", persist: false };
+    }
+
+    let lang = "pt";
+    const ui = () => UI_ALL[lang];
+    const pick = (key, fallback) => (lang === "en" && I18N[key] ? I18N[key] : fallback);
+
+    function rememberLang(value) {
+      try {
+        localStorage.setItem(LANG_KEY, value);
+      } catch (error) {
+        // Sem persistência: o idioma vale só para esta visita.
+      }
+    }
+
+    // ---------------------------------------------------------------- textos
+    // O português é a origem: os textos originais são capturados do HTML uma
+    // vez e restaurados quando o visitante volta para PT.
+    const textNodes = [...document.querySelectorAll("[data-i18n]")];
+    const htmlNodes = [...document.querySelectorAll("[data-i18n-html]")];
+    const altNodes = [...document.querySelectorAll("[data-i18n-alt]")];
+    const ariaNodes = [...document.querySelectorAll("[data-i18n-aria]")];
+    const shots = [...document.querySelectorAll("[data-shot]")];
+
+    const ptText = new Map(textNodes.map((el) => [el, el.textContent]));
+    const ptHtml = new Map(htmlNodes.map((el) => [el, el.innerHTML]));
+    const ptAlt = new Map(altNodes.map((el) => [el, el.getAttribute("alt")]));
+    const ptAria = new Map(ariaNodes.map((el) => [el, el.getAttribute("aria-label")]));
+
+    function applyTexts() {
+      textNodes.forEach((el) => {
+        el.textContent = pick(el.dataset.i18n, ptText.get(el));
+      });
+
+      htmlNodes.forEach((el) => {
+        el.innerHTML = pick(el.dataset.i18nHtml, ptHtml.get(el));
+      });
+
+      altNodes.forEach((el) => {
+        el.setAttribute("alt", pick(el.dataset.i18nAlt, ptAlt.get(el)));
+      });
+
+      ariaNodes.forEach((el) => {
+        el.setAttribute("aria-label", pick(el.dataset.i18nAria, ptAria.get(el)));
+      });
+
+      shots.forEach((img) => {
+        img.src = "assets/screens/" + lang + "/" + img.dataset.shot + ".webp";
+      });
+    }
+
+    function setMeta(attr, name, content) {
+      const el = document.querySelector("meta[" + attr + '="' + name + '"]');
+      if (el) el.setAttribute("content", content);
+    }
+
+    function applyMeta() {
+      const meta = ui();
+
+      document.title = meta.title;
+      setMeta("name", "description", meta.description);
+      setMeta("property", "og:title", meta.title);
+      setMeta("property", "og:description", meta.description);
+      setMeta("property", "og:locale", meta.locale);
+      setMeta("property", "og:url", meta.canonical);
+      setMeta("name", "twitter:title", meta.title);
+      setMeta("name", "twitter:description", meta.description);
+
+      const canonical = document.querySelector('link[rel="canonical"]');
+      if (canonical) canonical.setAttribute("href", meta.canonical);
+    }
+
+    // ---------------------------------------------------------------- lojas
+    // Nenhuma das duas lojas está pública:
+    // - App Store: app em análise (a URL responde 404 até a Apple liberar);
+    // - Google Play: app em teste fechado (a URL só abre para os testadores).
+    // Ao publicar, troque `live` para true: o link é ativado, o selo perde o
+    // "EM BREVE" e a nota daquela loja some.
+    const STORES = [
+      {
+        key: "apple",
+        url: "https://apps.apple.com/app/id6822841503",
+        live: false,
+        links: ["appStoreLink", "appStoreLinkBottom"],
+        note: "appStoreNote",
+      },
+      {
+        key: "play",
+        url: "https://play.google.com/store/apps/details?id=com.divenup.contas",
+        live: false,
+        links: ["playStoreLink", "playStoreLinkBottom", "playStoreLinkFooter"],
+        note: "playStoreNote",
+      },
+    ];
+
+    function applyStores() {
+      const meta = ui();
+
+      STORES.forEach((store) => {
+        const cta = meta["store." + store.key + ".cta"];
+
+        store.links.forEach((id) => {
+          const link = document.getElementById(id);
+          if (!link) return;
+
+          const isBadge = link.classList.contains("store-link");
+
+          if (store.live) {
+            link.href = store.url;
+            link.classList.remove("is-soon");
+            link.removeAttribute("aria-disabled");
+            link.removeAttribute("data-soon");
+            link.setAttribute("aria-label", cta);
+            link.setAttribute("target", "_blank");
+            link.setAttribute("rel", "noopener");
+            return;
+          }
+
+          link.classList.add("is-soon");
+          link.setAttribute("aria-disabled", "true");
+          link.setAttribute("aria-label", cta + " — " + meta["soon.suffix"]);
+          link.dataset.soon = isBadge ? meta["soon.badge"] : meta["soon.footer"];
+
+          if (!isBadge) link.href = "#baixar";
+        });
+
+        const note = document.getElementById(store.note);
+        if (note) note.hidden = store.live;
+      });
+    }
+
+    // ---------------------------------------------------------------- toast
     const toast = document.getElementById("toast");
     let toastTimer;
 
@@ -674,62 +894,45 @@
       toastTimer = setTimeout(() => toast.classList.remove("show"), 3600);
     }
 
-    // Nenhuma das lojas está pública ainda:
-    // - App Store: app em análise (a URL responde 404 até a Apple liberar);
-    // - Google Play: app em teste fechado (a URL só abre para os testadores).
-    // Ao publicar, troque `live` para true: o link é ativado, o selo perde o
-    // "EM BREVE" e a nota daquela loja some.
-    const STORES = [
-      {
-        name: "App Store",
-        url: "https://apps.apple.com/app/id6822841503",
-        cta: "Baixar na App Store",
-        live: false,
-        links: ["appStoreLink", "appStoreLinkBottom"],
-        note: "appStoreNote",
-        soon: "O DivenUp chega em breve à App Store. Acompanhe as novidades por aqui.",
-      },
-      {
-        name: "Google Play",
-        url: "https://play.google.com/store/apps/details?id=com.divenup.contas",
-        cta: "Baixar no Google Play",
-        live: false,
-        links: ["playStoreLink", "playStoreLinkBottom", "playStoreLinkFooter"],
-        note: "playStoreNote",
-        soon: "O DivenUp está em teste fechado no Google Play. A versão pública chega em breve.",
-      },
-    ];
+    document.addEventListener("click", (event) => {
+      const link = event.target.closest("[data-store]");
+      if (!link) return;
 
-    STORES.forEach((store) => {
-      store.links
-        .map((id) => document.getElementById(id))
-        .filter(Boolean)
-        .forEach((link) => {
-          if (store.live) {
-            link.href = store.url;
-            link.classList.remove("is-soon");
-            link.removeAttribute("aria-disabled");
-            link.setAttribute("aria-label", store.cta);
-            link.setAttribute("target", "_blank");
-            link.setAttribute("rel", "noopener");
-            return;
-          }
+      const store = STORES.find((item) => item.key === link.dataset.store);
+      if (!store || store.live) return;
 
-          link.classList.add("is-soon");
-          link.setAttribute("aria-disabled", "true");
-          link.setAttribute("aria-label", store.cta + " — em breve");
-          link.addEventListener("click", (event) => {
-            event.preventDefault();
-            showToast(store.soon);
-          });
-        });
-
-      if (store.live) {
-        const note = document.getElementById(store.note);
-        if (note) note.hidden = true;
-      }
+      event.preventDefault();
+      showToast(ui()["store." + store.key + ".soon"]);
     });
 
+    // ---------------------------------------------------------------- idioma
+    const langButtons = [...document.querySelectorAll("[data-lang]")];
+
+    function applyLang(next, options) {
+      lang = next;
+      document.documentElement.lang = lang === "pt" ? "pt-BR" : "en";
+
+      if (options && options.persist) rememberLang(lang);
+
+      langButtons.forEach((button) => {
+        button.setAttribute("aria-pressed", String(button.dataset.lang === lang));
+      });
+
+      applyTexts();
+      applyMeta();
+      applyStores();
+    }
+
+    langButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        if (button.dataset.lang !== lang) applyLang(button.dataset.lang, { persist: true });
+      });
+    });
+
+    const initial = detectLang();
+    applyLang(initial.lang, { persist: initial.persist });
+
+    // ---------------------------------------------------------------- menu
     const menuBtn = document.getElementById("menuBtn");
     const nav = document.getElementById("nav");
 
