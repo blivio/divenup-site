@@ -37,18 +37,27 @@ O GitHub Pages republica em ~1 minuto. Conferir:
 
 ## Link da App Store
 
-O app iOS ainda está em análise, então o selo da Apple aparece como **EM BREVE**
-e não leva a lugar nenhum. Quando o app for aprovado, pegue o Apple ID numérico
-em App Store Connect → Informações do app e edite em `index.html`:
+**Apple ID:** `6822841503` → https://apps.apple.com/app/id6822841503
+
+O app iOS ainda está em análise, e a URL só responde depois que a Apple
+publicar. Por isso o selo da Apple aparece como **EM BREVE** e o clique mostra
+um aviso, em vez de levar a um 404.
+
+Tudo é controlado por duas constantes no fim do `index.html`:
 
 ```js
-// perto do fim do arquivo
-const APP_STORE_URL = "https://apps.apple.com/app/id1234567890";
+const APP_STORE_URL = "https://apps.apple.com/app/id6822841503";
+const APP_STORE_LIVE = false; // ← virar para true quando o app estiver na loja
 ```
 
-O script liga automaticamente os dois selos, remove o aviso de "em breve" e
-abre em nova aba. Se quiser, troque também o texto do rodapé do CTA final
-("A versão para iPhone está em revisão na App Store.").
+- `APP_STORE_LIVE = false` (hoje): os dois selos da Apple continuam com a
+  etiqueta **EM BREVE**, o clique é bloqueado e aparece o toast, e a nota
+  "A versão para iPhone está em revisão na App Store." fica visível.
+- `APP_STORE_LIVE = true`: o script liga os dois selos ao `APP_STORE_URL`,
+  remove a etiqueta **EM BREVE**, abre em nova aba e esconde a nota de revisão.
+  Não é preciso mexer em mais nada.
+
+O selo do Google Play é um link fixo e está sempre ativo.
 
 ## Identidade visual
 

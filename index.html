@@ -615,7 +615,7 @@
           <img src="assets/badges/app-store.svg" alt="Baixar na App Store" width="120" height="40" />
         </a>
       </div>
-      <p class="store-note" style="margin-top:14px;">A versão para iPhone está em revisão na App Store.</p>
+      <p class="store-note" id="appStoreNote" style="margin-top:14px;">A versão para iPhone está em revisão na App Store.</p>
     </section>
   </main>
 
@@ -658,9 +658,12 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>
-    // Preencha com o link público da App Store quando o app for aprovado:
-    // const APP_STORE_URL = "https://apps.apple.com/app/id1234567890";
-    const APP_STORE_URL = "";
+    // Apple ID do app: 6822841503 (ficha já criada no App Store Connect).
+    // O app ainda está em análise, e a URL só responde quando a Apple publicar.
+    // Quando ele estiver disponível na loja, troque APP_STORE_LIVE para true:
+    // o link é ligado, o selo perde o "EM BREVE" e a nota de revisão some.
+    const APP_STORE_URL = "https://apps.apple.com/app/id6822841503";
+    const APP_STORE_LIVE = false;
 
     const appStoreLinks = [
       document.getElementById("appStoreLink"),
@@ -679,7 +682,7 @@
     }
 
     appStoreLinks.forEach((link) => {
-      if (APP_STORE_URL) {
+      if (APP_STORE_URL && APP_STORE_LIVE) {
         link.href = APP_STORE_URL;
         link.classList.remove("is-soon");
         link.removeAttribute("aria-disabled");
@@ -693,6 +696,11 @@
         });
       }
     });
+
+    if (APP_STORE_URL && APP_STORE_LIVE) {
+      const note = document.getElementById("appStoreNote");
+      if (note) note.hidden = true;
+    }
 
     const menuBtn = document.getElementById("menuBtn");
     const nav = document.getElementById("nav");
