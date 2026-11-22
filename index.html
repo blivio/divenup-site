@@ -178,7 +178,7 @@
     .store-link img { height: 51px; width: auto; }
     .store-link.is-soon { position: relative; cursor: not-allowed; }
     .store-link.is-soon::after {
-      content: attr(data-soon); position: absolute; right: -7px; top: -9px;
+      content: attr(data-soon); position: absolute; right: -6px; bottom: calc(100% - 3px);
       background: var(--success-soft); color: var(--success);
       border: 1px solid #bef264; border-radius: 999px;
       padding: 3px 7px; font-size: 9px; font-weight: 900; letter-spacing: .06em;
@@ -393,6 +393,7 @@
     /* Inglês tem palavras mais longas no título: reduz para não estourar. */
     @media (max-width: 400px) {
       html[lang="en"] h1 { font-size: clamp(30px, 9.2vw, 40px); }
+      .store-link img { height: clamp(40px, 12vw, 48px); }
     }
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
@@ -441,7 +442,7 @@
 
           <div class="store-row" aria-label="Baixar o DivenUp" data-i18n-aria="a11y.stores">
             <a class="store-link is-soon" id="playStoreLink" data-store="play" href="#" aria-label="Google Play — em breve" aria-disabled="true">
-              <img src="assets/badges/google-play.png" alt="Baixar na Google Play" data-i18n-alt="store.play.alt" width="646" height="250" />
+              <img src="assets/badges/google-play.png" alt="Baixar na Google Play" data-i18n-alt="store.play.alt" width="646" height="192" />
             </a>
             <a class="store-link is-soon" id="appStoreLink" data-store="apple" href="#" aria-label="DivenUp na App Store — em breve" aria-disabled="true">
               <img src="assets/badges/app-store.svg" alt="Baixar na App Store" data-i18n-alt="store.apple.alt" width="120" height="40" />
@@ -673,7 +674,7 @@
       <p data-i18n="cta.lede">O DivenUp chega em breve às lojas. Crie seu primeiro evento e deixe a matemática com ele.</p>
       <div class="store-row">
         <a class="store-link is-soon" id="playStoreLinkBottom" data-store="play" href="#" aria-label="Google Play — em breve" aria-disabled="true">
-          <img src="assets/badges/google-play.png" alt="Baixar na Google Play" data-i18n-alt="store.play.alt" width="646" height="250" />
+          <img src="assets/badges/google-play.png" alt="Baixar na Google Play" data-i18n-alt="store.play.alt" width="646" height="192" />
         </a>
         <a class="store-link is-soon" id="appStoreLinkBottom" data-store="apple" href="#" aria-label="DivenUp na App Store — em breve" aria-disabled="true">
           <img src="assets/badges/app-store.svg" alt="Baixar na App Store" data-i18n-alt="store.apple.alt" width="120" height="40" />

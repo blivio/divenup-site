@@ -24,6 +24,11 @@ assets/
   screens/en/        capturas reais do app em inglês (WebP, 720px)
 ```
 
+> **Selo do Google Play:** o PNG foi recortado para **646×192**. O arquivo
+> original (646×250) tem 29 px de padding transparente em cima e embaixo; como
+> o CSS dimensiona os selos pela altura, ele aparecia ~23% mais baixo que o da
+> App Store. Se substituir o arquivo, recorte o padding antes de subir.
+
 ## Publicar
 
 ```bash
