@@ -442,10 +442,10 @@
 
           <div class="store-row" aria-label="Baixar o DivenUp" data-i18n-aria="a11y.stores">
             <a class="store-link is-soon" id="playStoreLink" data-store="play" href="#" aria-label="Google Play — em breve" aria-disabled="true">
-              <img src="assets/badges/google-play.png?v=2" alt="Baixar na Google Play" data-i18n-alt="store.play.alt" width="646" height="192" />
+              <img src="assets/badges/play-pt.png" data-badge="play" alt="Baixar na Google Play" data-i18n-alt="store.play.alt" width="646" height="192" />
             </a>
             <a class="store-link is-soon" id="appStoreLink" data-store="apple" href="#" aria-label="DivenUp na App Store — em breve" aria-disabled="true">
-              <img src="assets/badges/app-store.svg" alt="Baixar na App Store" data-i18n-alt="store.apple.alt" width="120" height="40" />
+              <img src="assets/badges/app-store-pt.svg" data-badge="apple" alt="Baixar na App Store" data-i18n-alt="store.apple.alt" width="120" height="40" />
             </a>
           </div>
           <div class="micro">
@@ -674,10 +674,10 @@
       <p data-i18n="cta.lede">O DivenUp chega em breve às lojas. Crie seu primeiro evento e deixe a matemática com ele.</p>
       <div class="store-row">
         <a class="store-link is-soon" id="playStoreLinkBottom" data-store="play" href="#" aria-label="Google Play — em breve" aria-disabled="true">
-          <img src="assets/badges/google-play.png?v=2" alt="Baixar na Google Play" data-i18n-alt="store.play.alt" width="646" height="192" />
+          <img src="assets/badges/play-pt.png" data-badge="play" alt="Baixar na Google Play" data-i18n-alt="store.play.alt" width="646" height="192" />
         </a>
         <a class="store-link is-soon" id="appStoreLinkBottom" data-store="apple" href="#" aria-label="DivenUp na App Store — em breve" aria-disabled="true">
-          <img src="assets/badges/app-store.svg" alt="Baixar na App Store" data-i18n-alt="store.apple.alt" width="120" height="40" />
+          <img src="assets/badges/app-store-pt.svg" data-badge="apple" alt="Baixar na App Store" data-i18n-alt="store.apple.alt" width="120" height="40" />
         </a>
       </div>
       <div class="store-notes">
@@ -775,6 +775,16 @@
     const altNodes = [...document.querySelectorAll("[data-i18n-alt]")];
     const ariaNodes = [...document.querySelectorAll("[data-i18n-aria]")];
     const shots = [...document.querySelectorAll("[data-shot]")];
+    const badgeImgs = [...document.querySelectorAll("[data-badge]")];
+
+    // Os selos oficiais são localizados: cada idioma tem a sua arte.
+    const BADGES = {
+      play: { pt: "assets/badges/play-pt.png", en: "assets/badges/play-en.png" },
+      apple: {
+        pt: "assets/badges/app-store-pt.svg",
+        en: "assets/badges/app-store-en.svg",
+      },
+    };
 
     const ptText = new Map(textNodes.map((el) => [el, el.textContent]));
     const ptHtml = new Map(htmlNodes.map((el) => [el, el.innerHTML]));
@@ -800,6 +810,11 @@
 
       shots.forEach((img) => {
         img.src = "assets/screens/" + lang + "/" + img.dataset.shot + ".webp";
+      });
+
+      badgeImgs.forEach((img) => {
+        const src = BADGES[img.dataset.badge] && BADGES[img.dataset.badge][lang];
+        if (src) img.src = src;
       });
     }
 

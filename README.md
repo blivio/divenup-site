@@ -19,15 +19,20 @@ assets/
   apple-touch-icon.png
   favicon.png
   og.jpg             imagem de compartilhamento (Open Graph / Twitter)
-  badges/            selos oficiais Google Play e App Store
+  badges/            selos oficiais localizados:
+                     play-pt.png / play-en.png
+                     app-store-pt.svg / app-store-en.svg
   screens/pt/        capturas reais do app em português (WebP, 720px)
   screens/en/        capturas reais do app em inglês (WebP, 720px)
 ```
 
-> **Selo do Google Play:** o PNG foi recortado para **646×192**. O arquivo
-> original (646×250) tem 29 px de padding transparente em cima e embaixo; como
-> o CSS dimensiona os selos pela altura, ele aparecia ~23% mais baixo que o da
-> App Store. Se substituir o arquivo, recorte o padding antes de subir.
+> **Selos das lojas:** são oficiais e **localizados** — a arte acompanha o
+> idioma da página (o `data-badge` troca o arquivo junto com os textos).
+> Os PNGs do Google Play foram **recortados no padding transparente**: o
+> original tem 646×250 (PT) e 646×250 (EN), com sobra em volta; sem o recorte o
+> selo renderiza ~23% mais baixo que o da App Store, porque o CSS dimensiona
+> pela altura. Ficaram `646×192` (PT) e `564×168` (EN). Se substituir os
+> arquivos, recorte o padding antes de subir.
 
 ## Publicar
 
