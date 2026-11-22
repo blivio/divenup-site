@@ -1,18 +1,743 @@
 <!doctype html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="utf-8" />
-    <title>DivenUp</title>
-  </head>
-  <body>
-    <h1>DivenUp</h1>
-    <p>Divida contas e despesas entre participantes de eventos.</p>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DivenUp — divida contas sem planilhas</title>
+  <meta name="description" content="Organize viagens, churrascos, bares e qualquer rolê em que várias pessoas dividem despesas. O DivenUp calcula quem deve quanto a quem — sem planilhas." />
+  <meta name="theme-color" content="#0B3B2E" />
+  <link rel="canonical" href="https://divenup.com.br/" />
+  <link rel="icon" href="assets/favicon.png" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
 
-    <ul>
-      <li><a href="https://blivio.github.io/divenup-privacy/">Política de Privacidade</a></li>
-      <li><a href="https://blivio.github.io/divenup-privacy/eula/">Termos de Uso</a></li>
-      <li><a href="mailto:divenup@brenotavares.com.br">Fale conosco</a></li>
-      <li><a href="https://play.google.com/store/apps/details?id=com.divenup.contas">Google Play</a></li>
-    </ul>
-  </body>
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="DivenUp" />
+  <meta property="og:title" content="DivenUp — divida contas sem planilhas" />
+  <meta property="og:description" content="Do churrasco ao barzinho: registre despesas, contas e pagamentos e veja exatamente quem deve quanto a quem." />
+  <meta property="og:url" content="https://divenup.com.br/" />
+  <meta property="og:image" content="https://divenup.com.br/assets/og.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="DivenUp — divida contas sem planilhas" />
+  <meta name="twitter:description" content="Do churrasco ao barzinho: registre despesas, contas e pagamentos e veja exatamente quem deve quanto a quem." />
+  <meta name="twitter:image" content="https://divenup.com.br/assets/og.jpg" />
+
+  <style>
+    :root {
+      --bg: #F3F7F1;
+      --surface: #FFFFFF;
+      --surface-muted: #E7EFE3;
+      --primary: #0B3B2E;
+      --primary-dark: #072A20;
+      --primary-soft: #DCF2E6;
+      --accent: #10B981;
+      --accent-text: #047857;
+      --accent-soft: #D1FAE5;
+      --accent-border: #6EE7B7;
+      --success: #4D7C0F;
+      --success-soft: #ECFCCB;
+      --text: #10251C;
+      --text-muted: #5B6E63;
+      --line: #DCE7DA;
+      --shadow: 0 24px 60px rgba(7, 42, 32, .12);
+      --radius: 22px;
+      --max: 1180px;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      color: var(--text);
+      background:
+        radial-gradient(900px 500px at 92% -5%, rgba(16, 185, 129, .14), transparent 60%),
+        radial-gradient(700px 420px at -10% 30%, rgba(11, 59, 46, .07), transparent 60%),
+        var(--bg);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    img { max-width: 100%; display: block; height: auto; }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; }
+    ::selection { background: var(--accent-soft); color: var(--primary-dark); }
+
+    .skip {
+      position: absolute; left: 12px; top: -80px; z-index: 100;
+      background: var(--primary); color: #fff; padding: 12px 18px;
+      border-radius: 12px; transition: top .2s ease;
+    }
+    .skip:focus { top: 12px; }
+
+    .wrap { width: min(calc(100% - 40px), var(--max)); margin: 0 auto; }
+
+    .site-header {
+      position: sticky; top: 0; z-index: 50;
+      padding: 14px 0;
+      background: rgba(243, 247, 241, .82);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(220, 231, 218, .8);
+    }
+    .header-inner { display: flex; align-items: center; gap: 22px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: -.02em; font-size: 21px; }
+    .brand img { width: 46px; height: 46px; border-radius: 13px; box-shadow: 0 8px 20px rgba(7, 42, 32, .16); }
+    .brand span { white-space: nowrap; }
+    .nav { display: flex; align-items: center; gap: 24px; margin-left: auto; }
+    .nav a { color: var(--text-muted); font-weight: 600; font-size: 14px; }
+    .nav a:hover { color: var(--primary); }
+    .header-cta { margin-left: 6px; }
+    .menu-btn {
+      display: none; margin-left: auto; width: 44px; height: 44px;
+      border: 1px solid var(--line); border-radius: 13px; background: var(--surface);
+      align-items: center; justify-content: center; cursor: pointer; color: var(--primary);
+    }
+    .menu-btn svg { width: 22px; height: 22px; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+      min-height: 48px; padding: 0 20px; border-radius: 14px;
+      font-weight: 700; font-size: 15px; border: 1px solid transparent;
+      transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary { background: var(--primary); color: #fff; box-shadow: 0 12px 24px rgba(7, 42, 32, .18); }
+    .btn-primary:hover { background: var(--primary-dark); box-shadow: 0 16px 30px rgba(7, 42, 32, .22); }
+    .btn-ghost { background: rgba(255, 255, 255, .66); border-color: var(--line); color: var(--primary); }
+    .btn-ghost:hover { background: #fff; }
+    .btn svg { width: 18px; height: 18px; }
+
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 7px 12px; border-radius: 999px;
+      background: var(--primary-soft); color: var(--accent-text);
+      font-size: 12px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase;
+    }
+    .eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+
+    h1, h2, h3 { margin: 0; line-height: 1.08; letter-spacing: -.035em; }
+    h1 { font-size: clamp(42px, 5.6vw, 76px); font-weight: 850; }
+    h2 { font-size: clamp(31px, 3.6vw, 48px); font-weight: 820; }
+    h3 { font-size: 20px; font-weight: 800; letter-spacing: -.02em; }
+    p { margin: 0; }
+    .lede { font-size: clamp(17px, 1.8vw, 20px); color: var(--text-muted); max-width: 620px; }
+    .accent { color: var(--accent-text); }
+    .highlight { position: relative; z-index: 0; white-space: nowrap; }
+    .highlight::after {
+      content: ""; position: absolute; z-index: -1; left: -2%; right: -2%; bottom: .08em; height: .32em;
+      background: var(--accent-soft); border-radius: 99px;
+    }
+
+    .hero { padding: 64px 0 34px; }
+    .hero-grid { display: grid; grid-template-columns: 1.02fr .98fr; align-items: center; gap: 40px; }
+    .hero-copy { max-width: 650px; }
+    .hero h1 { margin-top: 18px; }
+    .hero .lede { margin-top: 20px; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; align-items: center; }
+    .micro { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 18px; color: var(--text-muted); font-size: 13px; font-weight: 600; }
+    .micro span { display: inline-flex; align-items: center; gap: 7px; }
+    .micro svg { width: 16px; height: 16px; color: var(--accent-text); }
+
+    .store-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 24px; }
+    .store-link {
+      display: inline-flex; align-items: center; border-radius: 12px;
+      transition: transform .2s ease, opacity .2s ease;
+    }
+    .store-link:hover { transform: translateY(-2px); }
+    .store-link img { height: 51px; width: auto; }
+    .store-link.is-soon { position: relative; cursor: not-allowed; }
+    .store-link.is-soon::after {
+      content: "EM BREVE"; position: absolute; right: -7px; top: -9px;
+      background: var(--success-soft); color: var(--success);
+      border: 1px solid #bef264; border-radius: 999px;
+      padding: 3px 7px; font-size: 9px; font-weight: 900; letter-spacing: .06em;
+    }
+    .store-note { color: var(--text-muted); font-size: 12px; }
+
+    .hero-visual { position: relative; min-height: 560px; display: flex; align-items: center; justify-content: center; }
+    .hero-blob {
+      position: absolute; inset: 6% 2% 4% 8%;
+      background:
+        radial-gradient(circle at 65% 30%, rgba(16, 185, 129, .26), transparent 55%),
+        linear-gradient(155deg, var(--primary-soft), #EAF7EA 58%, #D7F3E1);
+      border-radius: 46% 54% 48% 52% / 42% 44% 56% 58%;
+      filter: blur(.2px);
+    }
+    .phone {
+      position: relative; z-index: 2; width: min(292px, 64vw);
+      padding: 9px; border-radius: 48px;
+      background: #07120F;
+      box-shadow: 0 35px 80px rgba(7, 42, 32, .28), inset 0 0 0 1px rgba(255, 255, 255, .16);
+      transform: rotate(-2.5deg);
+    }
+    .phone::before {
+      content: ""; position: absolute; z-index: 3; top: 18px; left: 50%; transform: translateX(-50%);
+      width: 92px; height: 24px; border-radius: 20px; background: #07120F;
+    }
+    .phone img { width: 100%; border-radius: 40px; }
+    .float-card {
+      position: absolute; z-index: 4; background: rgba(255, 255, 255, .92);
+      border: 1px solid rgba(255, 255, 255, .9); border-radius: 18px;
+      box-shadow: 0 18px 40px rgba(7, 42, 32, .16); padding: 13px 16px;
+      backdrop-filter: blur(12px);
+    }
+    .float-card small { display: block; color: var(--text-muted); font-size: 11px; font-weight: 700; }
+    .float-card strong { display: block; margin-top: 2px; font-size: 18px; letter-spacing: -.02em; }
+    .float-one { top: 3%; left: -62px; }
+    .float-two { bottom: 7%; right: -6px; }
+    .float-icon {
+      display: inline-flex; width: 28px; height: 28px; border-radius: 9px;
+      align-items: center; justify-content: center; margin-bottom: 7px;
+      background: var(--success-soft); color: var(--success);
+    }
+    .float-icon svg { width: 16px; height: 16px; }
+
+    .logo-strip {
+      margin-top: 26px; padding: 22px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    }
+    .logo-strip p { color: var(--text-muted); font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; text-align: center; }
+    .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 9px; margin-top: 12px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: rgba(255, 255, 255, .72); border: 1px solid var(--line);
+      border-radius: 999px; padding: 8px 13px; font-size: 13px; font-weight: 650; color: var(--text-muted);
+    }
+    .chip svg { width: 15px; height: 15px; color: var(--accent-text); }
+
+    section { padding: 84px 0; }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 28px; margin-bottom: 34px; }
+    .section-head .eyebrow { margin-bottom: 13px; }
+    .section-head p { max-width: 480px; color: var(--text-muted); }
+
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .feature {
+      background: rgba(255, 255, 255, .8); border: 1px solid var(--line);
+      border-radius: var(--radius); padding: 24px; box-shadow: 0 8px 22px rgba(7, 42, 32, .04);
+      transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+    }
+    .feature:hover { transform: translateY(-3px); box-shadow: 0 20px 44px rgba(7, 42, 32, .08); border-color: var(--accent-border); }
+    .feature-icon {
+      width: 44px; height: 44px; border-radius: 13px; display: flex; align-items: center; justify-content: center;
+      background: var(--primary-soft); color: var(--primary); margin-bottom: 16px;
+    }
+    .feature-icon svg { width: 22px; height: 22px; }
+    .feature p { margin-top: 8px; color: var(--text-muted); font-size: 14.5px; }
+    .feature .tag { display: inline-block; margin-top: 14px; font-size: 11px; font-weight: 800; color: var(--accent-text); letter-spacing: .06em; text-transform: uppercase; }
+
+    .screens-section { background: linear-gradient(180deg, rgba(255,255,255,.45), rgba(220,242,230,.42)); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; align-items: start; }
+    .shot { text-align: center; }
+    .shot .device {
+      background: #07120F; border-radius: 30px; padding: 6px; box-shadow: 0 24px 50px rgba(7, 42, 32, .16);
+    }
+    .shot img { border-radius: 24px; }
+    .shot figcaption { margin-top: 12px; font-size: 13px; font-weight: 750; color: var(--text-muted); }
+
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; counter-reset: step; }
+    .step { position: relative; padding: 26px 24px 24px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); }
+    .step::before {
+      counter-increment: step; content: counter(step);
+      width: 36px; height: 36px; border-radius: 12px; background: var(--primary); color: #fff;
+      display: flex; align-items: center; justify-content: center; font-weight: 850;
+      margin-bottom: 14px; box-shadow: 0 8px 18px rgba(7, 42, 32, .16);
+    }
+    .step p { margin-top: 7px; color: var(--text-muted); font-size: 14.5px; }
+
+    .plans { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: stretch; }
+    .plan { border-radius: 26px; padding: 30px; border: 1px solid var(--line); background: rgba(255,255,255,.86); }
+    .plan.pro { background: linear-gradient(160deg, #0B3B2E, #072A20); color: #fff; border-color: transparent; box-shadow: 0 26px 60px rgba(7, 42, 32, .22); }
+    .plan .plan-label { font-size: 12px; font-weight: 850; letter-spacing: .12em; text-transform: uppercase; color: var(--accent-text); }
+    .plan.pro .plan-label { color: var(--accent-border); }
+    .plan h3 { margin-top: 8px; font-size: 28px; }
+    .plan .price { margin-top: 6px; color: var(--text-muted); font-size: 14px; }
+    .plan.pro .price { color: #BFE8D5; }
+    .plan ul { list-style: none; padding: 0; margin: 22px 0 0; display: grid; gap: 11px; }
+    .plan li { display: flex; gap: 10px; align-items: flex-start; font-size: 14.5px; }
+    .plan li svg { flex: 0 0 18px; width: 18px; height: 18px; margin-top: 2px; color: var(--accent-text); }
+    .plan.pro li svg { color: var(--accent-border); }
+    .plan .btn { margin-top: 24px; width: 100%; }
+    .plan.pro .btn { background: #fff; color: var(--primary); box-shadow: none; }
+    .plan.pro .btn:hover { background: var(--accent-soft); }
+
+    .privacy-panel {
+      background: linear-gradient(155deg, #0B3B2E, #072A20);
+      color: #fff; border-radius: 30px; padding: clamp(28px, 5vw, 56px);
+      display: grid; grid-template-columns: 1.15fr .85fr; gap: 36px; align-items: center;
+      box-shadow: var(--shadow); overflow: hidden; position: relative;
+    }
+    .privacy-panel::after {
+      content: ""; position: absolute; width: 360px; height: 360px; right: -80px; top: -100px;
+      background: radial-gradient(circle, rgba(16,185,129,.32), transparent 65%); border-radius: 50%;
+    }
+    .privacy-panel .eyebrow { background: rgba(255,255,255,.12); color: #D1FAE5; }
+    .privacy-panel h2 { margin-top: 14px; }
+    .privacy-panel p { margin-top: 14px; color: #BFE8D5; max-width: 520px; }
+    .privacy-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; position: relative; z-index: 1; }
+    .privacy-list li { display: flex; gap: 11px; align-items: flex-start; font-size: 14.5px; color: #E7F8EF; }
+    .privacy-list svg { flex: 0 0 18px; width: 18px; height: 18px; margin-top: 2px; color: var(--accent-border); }
+    .privacy-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; position: relative; z-index: 1; }
+    .privacy-links a { border: 1px solid rgba(255,255,255,.22); border-radius: 999px; padding: 8px 13px; font-size: 12px; font-weight: 700; color: #D1FAE5; }
+    .privacy-links a:hover { background: rgba(255,255,255,.08); }
+
+    .faq { display: grid; gap: 10px; }
+    details { background: rgba(255,255,255,.8); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; }
+    summary { cursor: pointer; font-weight: 750; list-style: none; display: flex; justify-content: space-between; gap: 16px; }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: "+"; color: var(--accent-text); font-size: 20px; line-height: 1; }
+    details[open] summary::after { content: "−"; }
+    details p { margin-top: 10px; color: var(--text-muted); font-size: 14.5px; }
+
+    .final-cta { text-align: center; padding: 92px 0 100px; }
+    .final-cta h2 { max-width: 780px; margin: 0 auto; }
+    .final-cta p { max-width: 560px; margin: 16px auto 0; color: var(--text-muted); }
+    .final-cta .store-row { justify-content: center; margin-top: 28px; }
+
+    .site-footer { background: var(--primary-dark); color: #D9F0E5; padding: 54px 0 28px; }
+    .footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 30px; }
+    .footer-brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 20px; color: #fff; }
+    .footer-brand img { width: 42px; height: 42px; border-radius: 12px; }
+    .footer-note { margin-top: 14px; max-width: 320px; color: #9CC8B6; font-size: 13px; }
+    .footer-col h4 { margin: 0 0 10px; color: #fff; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; }
+    .footer-col a { display: block; color: #A9D2C1; font-size: 13.5px; padding: 4px 0; }
+    .footer-col a:hover { color: #fff; }
+    .footer-bottom { border-top: 1px solid rgba(255,255,255,.12); margin-top: 36px; padding-top: 18px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; color: #7FAE9C; font-size: 12px; }
+
+    .toast {
+      position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px);
+      background: var(--primary); color: #fff; padding: 12px 18px; border-radius: 12px;
+      font-size: 13px; font-weight: 650; box-shadow: 0 18px 40px rgba(7, 42, 32, .3);
+      opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease; z-index: 90;
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    .reveal { opacity: 0; transform: translateY(16px); transition: opacity .6s ease, transform .6s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+
+    @media (max-width: 980px) {
+      .hero-grid { grid-template-columns: 1fr; }
+      .hero-copy { max-width: 720px; }
+      .hero-visual { min-height: 520px; margin-top: 8px; }
+      .features { grid-template-columns: 1fr 1fr; }
+      .privacy-panel { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+      .nav { display: none; }
+      .nav.open { display: flex; position: absolute; top: 78px; left: 20px; right: 20px; padding: 18px; border: 1px solid var(--line); border-radius: 18px; background: rgba(255,255,255,.98); box-shadow: var(--shadow); flex-direction: column; align-items: stretch; gap: 12px; margin: 0; }
+      .header-cta { display: none; }
+      .menu-btn { display: inline-flex; }
+    }
+    @media (max-width: 720px) {
+      section { padding: 62px 0; }
+      .hero { padding-top: 42px; }
+      .section-head { display: block; }
+      .section-head p { margin-top: 12px; }
+      .features, .steps, .plans, .gallery { grid-template-columns: 1fr; }
+      .gallery { max-width: 360px; margin: 0 auto; }
+      .hero-visual { min-height: 470px; }
+      .float-card { display: none; }
+      .site-footer { padding-top: 40px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .reveal { opacity: 1; transform: none; transition: none; }
+      .btn, .feature, .store-link { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#conteudo">Pular para o conteúdo</a>
+
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="#top" aria-label="DivenUp — início">
+        <img src="assets/icon-192.png" alt="" width="46" height="46" />
+        <span>DivenUp</span>
+      </a>
+      <button class="menu-btn" id="menuBtn" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <nav class="nav" id="nav" aria-label="Navegação principal">
+        <a href="#recursos">Recursos</a>
+        <a href="#como-funciona">Como funciona</a>
+        <a href="#planos">Planos</a>
+        <a href="#privacidade">Privacidade</a>
+        <a class="btn btn-primary header-cta" href="#baixar">Baixar o app</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="conteudo">
+    <section class="hero wrap" id="top">
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <span class="eyebrow"><span class="dot"></span> Para dividir sem estresse</span>
+          <h1>Divida contas <span class="highlight">sem planilhas</span>.</h1>
+          <p class="lede">Do churrasco ao barzinho: registre despesas, contas e pagamentos. O DivenUp calcula quem pagou o quê e mostra exatamente quem deve quanto a quem.</p>
+
+          <div class="store-row" aria-label="Baixar o DivenUp">
+            <a class="store-link" href="https://play.google.com/store/apps/details?id=com.divenup.contas" target="_blank" rel="noopener" aria-label="Baixar na Google Play">
+              <img src="assets/badges/google-play.png" alt="Baixar na Google Play" width="646" height="250" />
+            </a>
+            <a class="store-link is-soon" id="appStoreLink" href="#" aria-label="DivenUp na App Store — em breve" aria-disabled="true">
+              <img src="assets/badges/app-store.svg" alt="Baixar na App Store" width="120" height="40" />
+            </a>
+          </div>
+          <div class="micro">
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg> Grátis para começar</span>
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 8l7-5 7 5"/></svg> iPhone e Android</span>
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg> Funciona offline</span>
+          </div>
+        </div>
+
+        <div class="hero-visual" aria-label="Captura do app DivenUp">
+          <div class="hero-blob" aria-hidden="true"></div>
+          <div class="phone">
+            <img src="assets/screens/acertos.webp" alt="Tela do DivenUp mostrando quem deve ao estabelecimento" width="720" height="1560" />
+          </div>
+          <div class="float-card float-one" aria-hidden="true">
+            <span class="float-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg></span>
+            <small>Tudo acertado</small>
+            <strong>R$ 0,00 em aberto</strong>
+          </div>
+          <div class="float-card float-two" aria-hidden="true">
+            <small>Seu consumo</small>
+            <strong>R$ 33,74</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="logo-strip">
+      <div class="wrap">
+        <p>Feito para todo rolê que junta gente</p>
+        <div class="chips">
+          <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18l-2 12H5L3 7Z"/><path d="M8 7V5a4 4 0 0 1 8 0v2"/></svg> Viagens</span>
+          <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h14l-2 8H7L5 4Z"/><path d="M7 12v6h10v-6"/></svg> Bares e restaurantes</span>
+          <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c2 4 5 5 5 9a5 5 0 0 1-10 0c0-2 1-3 2-5 1 2 2 2 3 1 0-2 0-3 0-5Z"/></svg> Churrascos</span>
+          <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Amigos e família</span>
+        </div>
+      </div>
+    </div>
+
+    <section id="recursos" class="wrap">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow"><span class="dot"></span> Recursos</span>
+          <h2>Feito para quem divide de verdade.</h2>
+        </div>
+        <p>Sem caderninho, sem discussão e sem aquele “depois eu vejo”. O DivenUp organiza tudo e deixa o acerto claro.</p>
+      </div>
+
+      <div class="features">
+        <article class="feature reveal">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h10M4 17h7"/></svg></div>
+          <h3>Rateio do seu jeito</h3>
+          <p>Divida por igual, por valor, por percentual ou por peso. Cada despesa pode ter um jeito diferente.</p>
+        </article>
+        <article class="feature reveal">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h5M8 16h3"/></svg></div>
+          <h3>Contas de bar e restaurante</h3>
+          <p>Monte a conta item por item, com quantidade, taxa de serviço e consumo por pessoa. O “em aberto” fica visível.</p>
+        </article>
+        <article class="feature reveal">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <h3>Colaboração de verdade</h3>
+          <p>Convide por @usuário, e-mail ou QR code. Todo mundo vê o mesmo evento, sincronizado entre aparelhos.</p>
+        </article>
+        <article class="feature reveal">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div>
+          <h3>Relatórios no Pro</h3>
+          <p>Veja gastos por período, consumo por pessoa e exporte em CSV para fechar as contas sem dúvida.</p>
+          <span class="tag">Disponível no Pro</span>
+        </article>
+        <article class="feature reveal">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12a7 7 0 0 1 14 0"/><path d="M2 12h20M12 12v8"/></svg></div>
+          <h3>Funciona offline</h3>
+          <p>Registre tudo mesmo sem internet. Os dados ficam no aparelho e sincronizam quando a conexão voltar.</p>
+        </article>
+        <article class="feature reveal">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg></div>
+          <h3>Do seu jeito</h3>
+          <p>Tema claro, escuro ou automático, tutoriais e interface em português e inglês.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="screens-section">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow"><span class="dot"></span> Por dentro do app</span>
+            <h2>A conta inteira, sem letra miúda.</h2>
+          </div>
+          <p>Do primeiro lançamento ao acerto final, tudo fica na mesma tela — fácil de conferir e de compartilhar.</p>
+        </div>
+        <div class="gallery">
+          <figure class="shot reveal">
+            <div class="device"><img src="assets/screens/acertos.webp" alt="Tela de acertos do DivenUp" width="720" height="1560" loading="lazy" /></div>
+            <figcaption>Quem deve ao estabelecimento</figcaption>
+          </figure>
+          <figure class="shot reveal">
+            <div class="device"><img src="assets/screens/bar.webp" alt="Tela de conta de bar do DivenUp" width="720" height="1560" loading="lazy" /></div>
+            <figcaption>Conta do bar, item por item</figcaption>
+          </figure>
+          <figure class="shot reveal">
+            <div class="device"><img src="assets/screens/resumo.webp" alt="Tela de resumo e consumo por pessoa do DivenUp" width="720" height="1560" loading="lazy" /></div>
+            <figcaption>Resumo e consumo por pessoa</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section id="como-funciona" class="wrap">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow"><span class="dot"></span> Como funciona</span>
+          <h2>Três passos e acabou o drama.</h2>
+        </div>
+        <p>Você não precisa mudar a forma de sair com os amigos. Só precisa registrar.</p>
+      </div>
+      <div class="steps">
+        <article class="step reveal">
+          <h3>Crie o evento</h3>
+          <p>Viagem, churrasco, bar, restaurante, festa. Dê um nome e comece.</p>
+        </article>
+        <article class="step reveal">
+          <h3>Adicione quem participou</h3>
+          <p>Escolha os contatos, convide pelo @usuário ou monte a lista na mão.</p>
+        </article>
+        <article class="step reveal">
+          <h3>Registre e acerte</h3>
+          <p>Lance despesas, contas e pagamentos. O DivenUp mostra quem deve quanto a quem.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="planos" class="wrap">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow"><span class="dot"></span> Planos</span>
+          <h2>Comece grátis. Vá de Pro quando quiser.</h2>
+        </div>
+        <p>O essencial para dividir já está no Free. O Pro tira os limites e os anúncios.</p>
+      </div>
+      <div class="plans">
+        <article class="plan reveal">
+          <span class="plan-label">Free</span>
+          <h3>Para o dia a dia</h3>
+          <p class="price">Grátis para começar</p>
+          <ul>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg> Eventos, participantes, despesas e pagamentos</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg> Rateio por igual, valor, percentual ou peso</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg> Colaboração e sincronização entre aparelhos</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg> Até 20 lançamentos por hora</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg> Modo convidado, sem conta</li>
+          </ul>
+          <a class="btn btn-ghost" href="#baixar">Baixar grátis</a>
+        </article>
+        <article class="plan pro reveal">
+          <span class="plan-label">Pro</span>
+          <h3>Para quem divide sempre</h3>
+          <p class="price">Assinatura mensal ou anual · 1 mês grátis</p>
+          <ul>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg> Lançamentos ilimitados</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg> Relatórios por período e exportação CSV</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg> Sem anúncios</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg> Tudo do Free incluído</li>
+          </ul>
+          <a class="btn" href="#baixar">Conhecer o Pro</a>
+        </article>
+      </div>
+    </section>
+
+    <section id="privacidade" class="wrap">
+      <div class="privacy-panel">
+        <div>
+          <span class="eyebrow"><span class="dot"></span> Privacidade</span>
+          <h2>Seus dados, do seu jeito.</h2>
+          <p>Sem conta, os dados ficam só no seu aparelho. Com conta, sincronizam com segurança para você acessar de qualquer lugar. E você pode excluir tudo quando quiser.</p>
+          <div class="privacy-links">
+            <a href="https://blivio.github.io/divenup-privacy/">Política de Privacidade</a>
+            <a href="https://blivio.github.io/divenup-privacy/eula/">Termos de Uso</a>
+            <a href="https://blivio.github.io/divenup-privacy/exclusao.html">Excluir conta</a>
+          </div>
+        </div>
+        <ul class="privacy-list">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5c0 4.4 3 8 7 10 4-2 7-5.6 7-10V6l-7-3Z"/></svg> Você decide se quer criar conta</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg> Dados protegidos em trânsito e em repouso</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg> Anúncios não personalizados, sem rastreamento</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15"/></svg> Exclusão de conta pelo próprio app</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="wrap">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow"><span class="dot"></span> Dúvidas</span>
+          <h2>O que todo mundo pergunta.</h2>
+        </div>
+      </div>
+      <div class="faq">
+        <details>
+          <summary>Preciso criar conta para usar?</summary>
+          <p>Não. No modo convidado os dados ficam apenas no seu aparelho. A conta serve para sincronizar entre aparelhos e colaborar em eventos compartilhados.</p>
+        </details>
+        <details>
+          <summary>O DivenUp faz pagamentos?</summary>
+          <p>Não. O app organiza e calcula os valores. Os pagamentos entre as pessoas acontecem fora do app, como você já faz hoje.</p>
+        </details>
+        <details>
+          <summary>Funciona sem internet?</summary>
+          <p>Sim. Você pode criar eventos, participantes e lançamentos offline. Quando a conexão voltar, tudo sincroniza.</p>
+        </details>
+        <details>
+          <summary>Como excluo minha conta e meus dados?</summary>
+          <p>Em Ajustes → Excluir minha conta, dentro do app. Também há instruções em <a class="accent" href="https://blivio.github.io/divenup-privacy/exclusao.html">blivio.github.io/divenup-privacy/exclusao.html</a>.</p>
+        </details>
+        <details>
+          <summary>O Pro é mensal ou anual?</summary>
+          <p>Os dois. A assinatura é feita diretamente pela App Store ou Google Play, com o preço exibido na sua loja.</p>
+        </details>
+      </div>
+    </section>
+
+    <section id="baixar" class="final-cta wrap">
+      <span class="eyebrow"><span class="dot"></span> Bora dividir?</span>
+      <h2>O próximo rolê já começa com a conta em paz.</h2>
+      <p>Baixe o DivenUp, crie seu primeiro evento e deixe o app fazer a matemática.</p>
+      <div class="store-row">
+        <a class="store-link" href="https://play.google.com/store/apps/details?id=com.divenup.contas" target="_blank" rel="noopener" aria-label="Baixar na Google Play">
+          <img src="assets/badges/google-play.png" alt="Baixar na Google Play" width="646" height="250" />
+        </a>
+        <a class="store-link is-soon" id="appStoreLinkBottom" href="#" aria-label="DivenUp na App Store — em breve" aria-disabled="true">
+          <img src="assets/badges/app-store.svg" alt="Baixar na App Store" width="120" height="40" />
+        </a>
+      </div>
+      <p class="store-note" style="margin-top:14px;">A versão para iPhone está em revisão na App Store.</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-grid">
+        <div>
+          <div class="footer-brand">
+            <img src="assets/icon-192.png" alt="" width="42" height="42" />
+            DivenUp
+          </div>
+          <p class="footer-note">Divida contas, despesas e rolês. Do churrasco à viagem, sem planilhas e sem confusão.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Produto</h4>
+          <a href="#recursos">Recursos</a>
+          <a href="#como-funciona">Como funciona</a>
+          <a href="#planos">Planos</a>
+        </div>
+        <div class="footer-col">
+          <h4>Legal</h4>
+          <a href="https://blivio.github.io/divenup-privacy/">Privacidade</a>
+          <a href="https://blivio.github.io/divenup-privacy/eula/">Termos de Uso</a>
+          <a href="https://blivio.github.io/divenup-privacy/exclusao.html">Exclusão de conta</a>
+          <a href="app-ads.txt">app-ads.txt</a>
+        </div>
+        <div class="footer-col">
+          <h4>Contato</h4>
+          <a href="mailto:divenup@brenotavares.com.br">divenup@brenotavares.com.br</a>
+          <a href="https://play.google.com/store/apps/details?id=com.divenup.contas" target="_blank" rel="noopener">Google Play</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 DivenUp. Todos os direitos reservados.</span>
+        <span>Feito para dividir melhor.</span>
+      </div>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    // Preencha com o link público da App Store quando o app for aprovado:
+    // const APP_STORE_URL = "https://apps.apple.com/app/id1234567890";
+    const APP_STORE_URL = "";
+
+    const appStoreLinks = [
+      document.getElementById("appStoreLink"),
+      document.getElementById("appStoreLinkBottom"),
+    ].filter(Boolean);
+
+    const toast = document.getElementById("toast");
+    let toastTimer;
+
+    function showToast(message) {
+      if (!toast) return;
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 3600);
+    }
+
+    appStoreLinks.forEach((link) => {
+      if (APP_STORE_URL) {
+        link.href = APP_STORE_URL;
+        link.classList.remove("is-soon");
+        link.removeAttribute("aria-disabled");
+        link.setAttribute("aria-label", "Baixar na App Store");
+        link.setAttribute("target", "_blank");
+        link.setAttribute("rel", "noopener");
+      } else {
+        link.addEventListener("click", (event) => {
+          event.preventDefault();
+          showToast("O DivenUp chega em breve à App Store. Enquanto isso, baixe no Google Play.");
+        });
+      }
+    });
+
+    const menuBtn = document.getElementById("menuBtn");
+    const nav = document.getElementById("nav");
+
+    if (menuBtn && nav) {
+      menuBtn.addEventListener("click", () => {
+        const open = nav.classList.toggle("open");
+        menuBtn.setAttribute("aria-expanded", String(open));
+      });
+
+      nav.addEventListener("click", (event) => {
+        if (event.target.closest("a")) {
+          nav.classList.remove("open");
+          menuBtn.setAttribute("aria-expanded", "false");
+        }
+      });
+    }
+
+    if ("IntersectionObserver" in window) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("in");
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.12 });
+
+      document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+    } else {
+      document.querySelectorAll(".reveal").forEach((el) => el.classList.add("in"));
+    }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "DivenUp",
+    "applicationCategory": "FinanceApplication",
+    "operatingSystem": "iOS, Android",
+    "description": "Organize viagens, churrascos, bares e qualquer evento em que várias pessoas dividem despesas. O DivenUp calcula quem deve quanto a quem.",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+    "url": "https://divenup.com.br/",
+    "downloadUrl": "https://play.google.com/store/apps/details?id=com.divenup.contas",
+    "inLanguage": ["pt-BR", "en"]
+  }
+  </script>
+</body>
 </html>
