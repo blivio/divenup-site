@@ -172,7 +172,6 @@ window.DIVENUP_UI = {
     'store.apple.soon':
       'O DivenUp chega em breve à App Store. Acompanhe as novidades por aqui.',
     'soon.badge': 'EM BREVE',
-    'soon.footer': 'em breve',
     'soon.suffix': 'em breve',
   },
   en: {
@@ -187,7 +186,6 @@ window.DIVENUP_UI = {
       'DivenUp is in closed testing on Google Play. The public release is coming soon.',
     'store.apple.soon': 'DivenUp is coming soon to the App Store. Stay tuned.',
     'soon.badge': 'SOON',
-    'soon.footer': 'soon',
     'soon.suffix': 'soon',
   },
 };

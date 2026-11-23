@@ -188,7 +188,6 @@
     }
     .store-notes { margin-top: 14px; }
     .store-note { color: var(--text-muted); font-size: 12px; }
-    .footer-col a.is-soon::after { content: " (" attr(data-soon) ")"; font-size: 11px; color: #7FAE9C; }
 
     .lang-switch {
       display: inline-flex; align-items: center; gap: 2px;
@@ -716,7 +715,6 @@
         <div class="footer-col">
           <h4 data-i18n="footer.contact">Contato</h4>
           <a href="mailto:divenup@brenotavares.com.br">divenup@brenotavares.com.br</a>
-          <a href="#baixar" id="playStoreLinkFooter" data-store="play">Google Play</a>
         </div>
       </div>
       <div class="footer-bottom">
@@ -860,7 +858,7 @@
         key: "play",
         url: "https://play.google.com/store/apps/details?id=com.divenup.contas",
         live: false,
-        links: ["playStoreLink", "playStoreLinkBottom", "playStoreLinkFooter"],
+        links: ["playStoreLink", "playStoreLinkBottom"],
         note: "playStoreNote",
       },
     ];
@@ -874,8 +872,6 @@
         store.links.forEach((id) => {
           const link = document.getElementById(id);
           if (!link) return;
-
-          const isBadge = link.classList.contains("store-link");
 
           if (store.live) {
             link.href = store.url;
@@ -891,9 +887,7 @@
           link.classList.add("is-soon");
           link.setAttribute("aria-disabled", "true");
           link.setAttribute("aria-label", cta + " — " + meta["soon.suffix"]);
-          link.dataset.soon = isBadge ? meta["soon.badge"] : meta["soon.footer"];
-
-          if (!isBadge) link.href = "#baixar";
+          link.dataset.soon = meta["soon.badge"];
         });
 
         const note = document.getElementById(store.note);
