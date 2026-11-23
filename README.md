@@ -26,6 +26,11 @@ assets/
   screens/en/        capturas reais do app em inglês (WebP, 720px)
 ```
 
+> **Cache dos textos:** o `assets/i18n.js` é carregado com `?v=3`. Ao mudar
+> qualquer texto nele, incremente esse número (`?v=4`, `?v=5`…) — o GitHub
+> Pages guarda assets por 10 minutos e, sem isso, quem já visitou o site
+> continua vendo o texto antigo.
+
 > **Selos das lojas:** são oficiais e **localizados** — a arte acompanha o
 > idioma da página (o `data-badge` troca o arquivo junto com os textos).
 > Os PNGs do Google Play foram **recortados no padding transparente**: o
