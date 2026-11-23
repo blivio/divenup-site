@@ -145,7 +145,7 @@ window.DIVENUP_I18N = {
   'cta.lede':
     'DivenUp is coming soon to the stores. Create your first event and let it do the math.',
   'note.apple': 'The iPhone version is in review on the App Store.',
-  'note.play': 'The Android version is in closed testing on Google Play.',
+  'note.play': 'The Android version is coming soon to Google Play.',
 
   'footer.note':
     'Split bills, expenses and get-togethers. From the barbecue to the trip, without spreadsheets or confusion.',
@@ -168,7 +168,7 @@ window.DIVENUP_UI = {
     'store.play.cta': 'Baixar no Google Play',
     'store.apple.cta': 'Baixar na App Store',
     'store.play.soon':
-      'O DivenUp está em teste fechado no Google Play. A versão pública chega em breve.',
+      'O DivenUp chega em breve à Play Store. Acompanhe as novidades por aqui.',
     'store.apple.soon':
       'O DivenUp chega em breve à App Store. Acompanhe as novidades por aqui.',
     'soon.badge': 'EM BREVE',
@@ -183,7 +183,7 @@ window.DIVENUP_UI = {
     'store.play.cta': 'Get it on Google Play',
     'store.apple.cta': 'Download on the App Store',
     'store.play.soon':
-      'DivenUp is in closed testing on Google Play. The public release is coming soon.',
+      'DivenUp is coming soon to Google Play. Stay tuned.',
     'store.apple.soon': 'DivenUp is coming soon to the App Store. Stay tuned.',
     'soon.badge': 'SOON',
     'soon.suffix': 'soon',
