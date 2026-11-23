@@ -144,8 +144,6 @@ window.DIVENUP_I18N = {
   'cta.title': 'Your next get-together already starts with the bill settled.',
   'cta.lede':
     'DivenUp is coming soon to the stores. Create your first event and let it do the math.',
-  'note.apple': 'The iPhone version is in review on the App Store.',
-  'note.play': 'The Android version is coming soon to Google Play.',
 
   'footer.note':
     'Split bills, expenses and get-togethers. From the barbecue to the trip, without spreadsheets or confusion.',
