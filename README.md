@@ -70,14 +70,14 @@ e salva a preferência.
 ## Links das lojas
 
 Nenhuma das duas lojas está pública, e as duas URLs respondem **404** hoje
-(Apple em análise, Google Play em teste fechado). Por isso os dois selos
-aparecem como **EM BREVE**, o clique mostra um aviso e o link do rodapé ganha
-o sufixo “(em breve)”. Nada leva a uma página de erro.
+(Apple em análise, Play com a ficha ainda não liberada). Por isso os dois selos
+aparecem como **EM BREVE** e o clique mostra um aviso. Nada leva a uma página
+de erro.
 
 | Loja | URL | Situação |
 | --- | --- | --- |
 | App Store | https://apps.apple.com/app/id6822841503 | em análise |
-| Google Play | https://play.google.com/store/apps/details?id=com.divenup.contas | teste fechado |
+| Google Play | https://play.google.com/store/apps/details?id=com.divenup.contas | ainda não pública |
 
 As duas ficam configuradas no fim do `index.html`:
 
